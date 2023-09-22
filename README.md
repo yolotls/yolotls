@@ -9,22 +9,24 @@ yoloTLS is when / We Can / but not necessarily whether / We Should
 
 # Goals / Problems To Solve
 
-- [ ] [Issue/2](issues/2) **We Can**: Experimental Fun Hobby Project (tm)
-- [ ] `no_std` with std as opt-in
-- [ ] Modern API designed from scratch
-- [ ] Both TLS and DTLS primary citizens
-- [ ] Pluggable De-Coupled Cipher suites / Algos
-- [ ] Portability and Safety focus with Performance second
-- [ ] wasm32-wasi and wasm32-u-u support from start
-- [ ] sans-io de-coupled I/O with both Completion and Evented models
-- [ ] de-coupled Protocol model
-- [ ] Unsafe TLS/SSL as "pluggable" opt-ins
-- [ ] API Abstractions / Bindings to other languages
+| Tracking#     | Topic                                                   |
+| :---          | :---                                                    |
+| [2](issues/2) | **We Can**: Experimental Fun Hobby Project (tm)         |
+| [x](issues/x) | `no_std` with std as opt-in                             |
+| [x](issues/x) | Modern API designed from scratch                        |
+| [x](issues/x) | Both TLS and DTLS primary citizens                      |
+| [x](issues/x) | Pluggable De-Coupled Cipher suites / Algos              |
+| [x](issues/x) | Portability and Safety focus with Performance second    |
+| [x](issues/x) | wasm32-wasi and wasm32-u-u support from start           |
+| [x](issues/x) | sans-io de-coupled I/O with both Completion and Evented |
+| [x](issues/x) | de-coupled Protocol model                               |
+| [x](issues/x) | Unsafe TLS/SSL as "pluggable" opt-ins                   |
+| [x](issues/x) | API Abstractions / Bindings to other languages          |
 
 # Non-Goals as of Now
 
-- [ ] **We Should**: Taking It Seriously (tm)
-- [ ] FIPS / Regulation
+- **We Should**: Taking It Seriously (tm)
+- FIPS / Regulation
 
 # Testbeds
 
