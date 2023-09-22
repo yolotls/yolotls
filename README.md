@@ -9,7 +9,7 @@ yoloTLS is when / We Can / but not necessarily whether / We Should
 
 # Goals / Problems To Solve
 
-- [ ] **We Can**: Experimental Fun Hobby Project (tm)
+- [ ] [#2] **We Can**: Experimental Fun Hobby Project (tm)
 - [ ] `no_std` with std as opt-in
 - [ ] Modern API designed from scratch
 - [ ] Both TLS and DTLS primary citizens
