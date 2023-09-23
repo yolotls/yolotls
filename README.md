@@ -9,19 +9,21 @@ yoloTLS is when / We Can / but not necessarily whether / We Should
 
 # Goals / Problems To Solve
 
-| Tracking#     | Topic                                                   |
-| :---          | :---                                                    |
-| [2](issues/2) | **We Can**: Experimental Fun Hobby Project (tm)         |
-| [x](issues/x) | `no_std` with std as opt-in                             |
-| [x](issues/x) | Modern API designed from scratch                        |
-| [x](issues/x) | Both TLS and DTLS primary citizens                      |
-| [x](issues/x) | Pluggable De-Coupled Cipher suites / Algos              |
-| [x](issues/x) | Portability and Safety focus with Performance second    |
-| [x](issues/x) | wasm32-wasi and wasm32-u-u support from start           |
-| [x](issues/x) | sans-io de-coupled I/O with both Completion and Evented |
-| [x](issues/x) | de-coupled Protocol model                               |
-| [x](issues/x) | Unsafe TLS/SSL as "pluggable" opt-ins                   |
-| [x](issues/x) | API Abstractions / Bindings to other languages          |
+| #               | Topic                                                   |
+| :---            | :---                                                    |
+| [2](issues/2)   | **We Can**: Experimental Fun Hobby Project (tm)         |
+| [3](issues/3)   | `no_std` with std as opt-in                             |
+| [4](issues/4)   | Modern API designed from scratch                        |
+| [5](issues/5)   | Both TLS and DTLS primary citizens                      |
+| [6](issues/6)   | Pluggable De-Coupled Cipher suites / Algos              |
+| [7](issues/7)   | Portability and Safety focus with Performance second    |
+| [8](issues/8)   | wasm32-wasi and wasm32-u-u support from start           |
+| [9](issues/9)   | sans-io de-coupled I/O with both Completion and Evented |
+| [10](issues/10) | de-coupled Protocol model                               |
+| [11](issues/11) | Unsafe TLS/SSL as "pluggable" opt-ins                   |
+| [12](issues/12)   | API Abstractions / Bindings to other languages          |
+
+Any /current/new/ goal can be adjusted / adopted etc. by proposing via a PR to above list linking to the relevant proposed Goal.
 
 # Non-Goals as of Now
 
