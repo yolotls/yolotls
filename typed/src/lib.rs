@@ -41,6 +41,10 @@ mod typed_signature_algorithms;
 #[doc(inline)]
 pub use typed_signature_algorithms::*;
 
-mod versions;
+mod typed_versions;
 #[doc(inline)]
-pub use versions::*;
+pub use typed_versions::*;
+
+mod typed_alpns;
+#[doc(inline)]
+pub use typed_alpns::*;

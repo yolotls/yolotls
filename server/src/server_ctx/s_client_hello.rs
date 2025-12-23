@@ -9,6 +9,7 @@ use ytls_extensions::{ExtGroupProcessor, TlsExtGroup};
 use ytls_extensions::{ExtKeyShareProcessor, TlsExtKeyShare};
 use ytls_extensions::{ExtSigAlgProcessor, TlsExtSigAlg};
 use ytls_extensions::{ExtVersionProcessor, TlsExtVersion};
+use ytls_extensions::{ExtAlpnProcessor, TlsExtAlpn};
 use ytls_typed::{TlsExtension, TlsCipherSuite};
 
 impl<C: TlsServerCtxConfig> HelloProcessor for TlsServerCtx<C> {
@@ -23,6 +24,7 @@ impl<C: TlsServerCtxConfig> HelloProcessor for TlsServerCtx<C> {
             TlsExtension::KeyShare => TlsExtKeyShare::client_key_share_cb(self, ext_data),
             TlsExtension::SignatureAlgorithms => TlsExtSigAlg::client_signature_algorithm_cb(self, ext_data),
             TlsExtension::SupportedVersions => TlsExtVersion::client_supported_version_cb(self, ext_data),
+            TlsExtension::Alpn => TlsExtAlpn::client_alpn_cb(self, ext_data),
             _ => {
                 println!(
                     "Missing Handle_extensions ext_id: {} / {:?} - ext_adta: {}",
@@ -105,5 +107,14 @@ impl<C: TlsServerCtxConfig> ExtVersionProcessor for TlsServerCtx<C> {
             return true;
         }
         false
+    }
+}
+
+use ytls_typed::Alpn;
+
+impl<C: TlsServerCtxConfig> ExtAlpnProcessor for TlsServerCtx<C> {
+    #[inline]
+    fn alpn<'r>(&mut self, alpn: Alpn<'r>) -> bool {
+        self.config.alpn(alpn)
     }
 }

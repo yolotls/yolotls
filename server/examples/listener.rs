@@ -1,6 +1,7 @@
 // Simple yolotls Server - Record parsing example
 
 use ytls_server::{TlsServerCtx, TlsServerCtxConfig};
+use ytls_typed::Alpn;
 
 use std::io::Read;
 use std::net::{TcpListener, TcpStream};
@@ -12,6 +13,12 @@ impl TlsServerCtxConfig for MyTlsServerCfg {
     fn dns_host_name(&self, host: &str) -> bool {
         // We only serve a single hostname
         host == "test.rustcryp.to"
+    }
+    fn alpn<'r>(&self, alpn: Alpn<'r>) -> bool {
+        if alpn == Alpn::Http11 {
+            return true;
+        }
+        false
     }
 }
 
