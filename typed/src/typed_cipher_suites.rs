@@ -3,6 +3,7 @@
 //! https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-4
 
 #[derive(Debug, PartialEq)]
+#[allow(non_camel_case_types)]
 pub enum TlsCipherSuite {
     TLS_RSA_WITH_AES_128_CBC_SHA,
     TLS_RSA_WITH_AES_256_CBC_SHA,
