@@ -40,3 +40,7 @@ pub use typed_groups::*;
 mod typed_signature_algorithms;
 #[doc(inline)]
 pub use typed_signature_algorithms::*;
+
+mod versions;
+#[doc(inline)]
+pub use versions::*;

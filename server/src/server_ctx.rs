@@ -19,6 +19,8 @@ pub struct TlsServerCtx<C> {
     chacha20_poly1305_sha256_supported: bool,
     /// Ed25519 Signature Algorithm supported
     sig_alg_ed25519_supported: bool,
+    /// TLS 1.3 supported
+    tls13_supported: bool,
 }
 
 impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
@@ -29,6 +31,7 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
                   group_x25519_supported: false,
                   chacha20_poly1305_sha256_supported: false,
                   sig_alg_ed25519_supported: false,
+                  tls13_supported: false,
         })
     }
     /// Process incoming TLS Records

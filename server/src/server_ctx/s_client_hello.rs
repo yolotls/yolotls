@@ -8,25 +8,30 @@ use ytls_extensions::{ExtSniProcessor, TlsExtSni};
 use ytls_extensions::{ExtGroupProcessor, TlsExtGroup};
 use ytls_extensions::{ExtKeyShareProcessor, TlsExtKeyShare};
 use ytls_extensions::{ExtSigAlgProcessor, TlsExtSigAlg};
+use ytls_extensions::{ExtVersionProcessor, TlsExtVersion};
 use ytls_typed::{TlsExtension, TlsCipherSuite};
 
 impl<C: TlsServerCtxConfig> HelloProcessor for TlsServerCtx<C> {
     #[inline]
     fn handle_extension(&mut self, ext_id: u16, ext_data: &[u8]) -> () {
         let ext_t: TlsExtension = ext_id.try_into().unwrap();
-        println!(
-            "Handle_extensions ext_id: {} / {:?} - ext_adta: {}",
-            ext_id,
-            ext_t,
-            hex::encode(ext_data)
-        );
+
 
         let e_res = match ext_t {
             TlsExtension::ServerNameIndication => TlsExtSni::client_hello_cb(self, ext_data),
             TlsExtension::SupportedGroups => TlsExtGroup::client_group_cb(self, ext_data),
             TlsExtension::KeyShare => TlsExtKeyShare::client_key_share_cb(self, ext_data),
             TlsExtension::SignatureAlgorithms => TlsExtSigAlg::client_signature_algorithm_cb(self, ext_data),
-            _ => Ok(()),
+            TlsExtension::SupportedVersions => TlsExtVersion::client_supported_version_cb(self, ext_data),
+            _ => {
+                println!(
+                    "Missing Handle_extensions ext_id: {} / {:?} - ext_adta: {}",
+                    ext_id,
+                    ext_t,
+                    hex::encode(ext_data)
+                );                
+                Ok(())
+            },
         };
 
         match e_res {
@@ -84,6 +89,19 @@ impl<C: TlsServerCtxConfig> ExtSigAlgProcessor for TlsServerCtx<C> {
     #[inline]
     fn signature_algorithm(&mut self, s_alg: SignatureAlgorithm) -> bool {
         if s_alg == SignatureAlgorithm::Ed25519 {
+            return true;
+        }
+        false
+    }
+}
+
+use ytls_typed::Version;
+
+impl<C: TlsServerCtxConfig> ExtVersionProcessor for TlsServerCtx<C> {
+    #[inline]
+    fn supported_version(&mut self, s_ver: Version) -> bool {
+        if s_ver == Version::Tls13 {
+            self.tls13_supported = true;
             return true;
         }
         false
