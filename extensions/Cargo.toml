@@ -21,6 +21,8 @@ default = []
 std = []
 
 [dependencies]
+hex = "0.4.3"
+ytls-typed = { path = "../typed" }
 
 [package.metadata.docs.rs]
 features = []
