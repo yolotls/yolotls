@@ -34,7 +34,7 @@ impl ExtSniProcessor for TlsServerCtx {
     #[inline]
     fn sni(&mut self, k: EntrySniKind, name: &[u8]) -> bool {
         println!("SNI: {} - {:?}", core::str::from_utf8(name).unwrap(), hex::encode(name));
-        todo!()
+        todo!();
         true
     }
 }

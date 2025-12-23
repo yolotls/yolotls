@@ -32,7 +32,7 @@ fn handle_client(mut stream: TcpStream) {
 
     let mut yum = TlsProcessor {};
     
-    let hdr = ytls_record::record::Record::parse(&mut yum, &buf[0..s]).unwrap();
+    let hdr = ytls_record::Record::parse(&mut yum, &buf[0..s]).unwrap();
 
     println!("Header = {:?}", hdr);
 }
