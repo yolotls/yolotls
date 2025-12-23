@@ -29,12 +29,10 @@ Any /current/new/ goal can be adjusted / adopted etc. by proposing via a PR to a
 
 | Crate           | Description                          |
 | :---            | :---                                 |
-| ytls-record     | Record layer                         |
-| ytls-typed      | Typed conversions from protocol data |
-| ytls-server     | Server context                       |
-| ytls-extensions | Extensions handling                  |
-
-- record - Record layer parsing
+| [ytls-record](./record)     | Record layer                         |
+| [ytls-typed](./typed)      | Typed conversions from protocol data |
+| [ytls-server(./server)     | Server context                       |
+| [ytls-extensions](./extensions) | Extensions handling                  |
 
 # Non-Goals as of Now
 
