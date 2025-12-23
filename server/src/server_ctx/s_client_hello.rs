@@ -1,12 +1,13 @@
 //! yTLS Server Context ClientHello Processor
 
 use super::TlsServerCtx;
+use crate::TlsServerCtxConfig;
 use ytls_traits::HelloProcessor;
 
 use ytls_extensions::{ExtSniProcessor, TlsExtSni};
 use ytls_typed::TlsExtension;
 
-impl HelloProcessor for TlsServerCtx {
+impl<C: TlsServerCtxConfig> HelloProcessor for TlsServerCtx<C> {
     #[inline]
     fn handle_extension(&mut self, ext_id: u16, ext_data: &[u8]) -> () {
         let ext_t: TlsExtension = ext_id.try_into().unwrap();
@@ -35,15 +36,14 @@ impl HelloProcessor for TlsServerCtx {
 
 use ytls_extensions::EntrySniKind;
 
-impl ExtSniProcessor for TlsServerCtx {
+impl<C: TlsServerCtxConfig> ExtSniProcessor for TlsServerCtx<C> {
     #[inline]
     fn sni(&mut self, k: EntrySniKind, name: &[u8]) -> bool {
-        println!(
-            "SNI: {} - {:?}",
-            core::str::from_utf8(name).unwrap(),
-            hex::encode(name)
-        );
-        todo!();
-        true
+        // TODO: validate hostname
+        let host = match core::str::from_utf8(name) {
+            Ok(h) => h,
+            Err(_) => return false,
+        };
+        self.config.dns_host_name(host)
     }
 }

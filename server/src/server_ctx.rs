@@ -8,12 +8,14 @@ use crate::TlsServerCtxConfig;
 use crate::TlsServerCtxError;
 
 /// State machine context for yTLS Server
-pub struct TlsServerCtx;
+pub struct TlsServerCtx<C> {
+    config: C,
+}
 
-impl TlsServerCtx {
+impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
     /// New yTLS server context with the given configuration
-    pub fn with_config(c: TlsServerCtxConfig) -> Result<Self, TlsServerCtxError> {
-        Ok(Self {})
+    pub fn with_config(config: C) -> Result<Self, TlsServerCtxError> {
+        Ok(Self { config })
     }
     /// Process incoming TLS Records
     pub fn process_tls_records(&mut self, data: &[u8]) -> Result<(), TlsServerCtxError> {
