@@ -39,7 +39,6 @@ impl TlsExtKeyShare {
             }
 
             let group: Group = ks_id.into();
-            println!("Group is {:?}", group);
 
             if ks_data_len as usize > remaining.len() {
                 panic!(
