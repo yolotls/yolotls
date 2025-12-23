@@ -41,10 +41,6 @@ impl TlsExtKeyShare {
             let group: Group = ks_id.into();
 
             if ks_data_len as usize > remaining.len() {
-                panic!(
-                    "ks_data_len {ks_data_len} overflows remaining len {}",
-                    remaining.len()
-                );
                 return Err(TlsExtError::EntryOverflow);
             }
 
