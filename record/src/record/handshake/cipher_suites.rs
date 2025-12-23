@@ -25,7 +25,7 @@ impl CipherSuites {
         let mut cs_iter = bytes.chunks(2);
 
         while let Some(cs) = cs_iter.next() {
-            prc.handle_cipher_suite(cs);
+            prc.handle_cipher_suite(&[cs[0], cs[1]]);
         }
         Ok(())
     }

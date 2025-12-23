@@ -564,6 +564,7 @@ dependencies = [
  "hex-literal",
  "insta",
  "rstest",
+ "ytls-typed",
 ]
 
 [[package]]
