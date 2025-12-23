@@ -7,7 +7,6 @@
     unused_qualifications
 )]
 #![doc = include_str!("../README.md")]
-
 #![allow(missing_docs)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
@@ -23,7 +22,7 @@ mod error;
 pub use error::*;
 
 //-----------------------------------------------
-// 
+//
 //-----------------------------------------------
 
 mod sni;

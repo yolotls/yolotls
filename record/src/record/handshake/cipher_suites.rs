@@ -10,13 +10,14 @@ use crate::error::CipherSuitesError;
 use zerocopy::byteorder::network_endian::U16 as N16;
 
 /// CipherSuites parsing & building
-pub struct CipherSuites {
-}
+pub struct CipherSuites {}
 
 impl CipherSuites {
     /// Parse cipher suites from the byte slice and pass them to the provided HelloProcessor
-    pub fn parse_cipher_suites<P: HelloProcessor>(prc: &mut P, bytes: &[u8]) -> Result<(), CipherSuitesError> {
-
+    pub fn parse_cipher_suites<P: HelloProcessor>(
+        prc: &mut P,
+        bytes: &[u8],
+    ) -> Result<(), CipherSuitesError> {
         if bytes.len() % 2 != 0 || bytes.len() == 0 {
             return Err(CipherSuitesError::InvalidLength);
         }
@@ -45,7 +46,8 @@ mod test {
             unreachable!()
         }
         fn handle_cipher_suite(&mut self, cipher_suite: &[u8]) -> () {
-            self.suites_encountered.push([cipher_suite[0], cipher_suite[1]]);
+            self.suites_encountered
+                .push([cipher_suite[0], cipher_suite[1]]);
         }
     }
 
@@ -66,13 +68,18 @@ mod test {
     #[case("130113031302c02bc02fcca9cca8c02cc030c00ac009c013c014009c009d002f00",
            Err(CipherSuitesError::InvalidLength),
            Tester { suites_encountered: vec![] }
-    )]  
-    fn t_cipher_suites_parsing(#[case] input: &'static str, #[case] res: Result<(), CipherSuitesError>, #[case] exp: Tester) {
-        let mut prc = Tester { suites_encountered: vec![] };
-        
+    )]
+    fn t_cipher_suites_parsing(
+        #[case] input: &'static str,
+        #[case] res: Result<(), CipherSuitesError>,
+        #[case] exp: Tester,
+    ) {
+        let mut prc = Tester {
+            suites_encountered: vec![],
+        };
+
         let r = CipherSuites::parse_cipher_suites(&mut prc, &hex::decode(input).unwrap());
         assert_eq!(r, res);
         assert_eq!(exp, prc);
     }
-
 }

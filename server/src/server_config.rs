@@ -2,5 +2,4 @@
 
 pub struct TlsServerCtxConfig;
 
-impl TlsServerCtxConfig {
-}
+impl TlsServerCtxConfig {}

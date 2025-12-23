@@ -1,5 +1,4 @@
 //! errors
 
 #[derive(Debug, PartialEq)]
-pub enum TlsTypedError {
-}
+pub enum TlsTypedError {}

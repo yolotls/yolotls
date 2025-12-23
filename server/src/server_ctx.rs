@@ -4,8 +4,8 @@ use ytls_record::Record;
 
 mod s_client_hello;
 
-use crate::TlsServerCtxError;
 use crate::TlsServerCtxConfig;
+use crate::TlsServerCtxError;
 
 /// State machine context for yTLS Server
 pub struct TlsServerCtx;
@@ -17,10 +17,8 @@ impl TlsServerCtx {
     }
     /// Process incoming TLS Records
     pub fn process_tls_records(&mut self, data: &[u8]) -> Result<(), TlsServerCtxError> {
-        let rec = Record::parse(self, data)
-            .map_err(|e| TlsServerCtxError::Record(e))?;
+        let rec = Record::parse(self, data).map_err(|e| TlsServerCtxError::Record(e))?;
         println!("Rec = {:?}", rec);
         todo!()
     }
-    
 }

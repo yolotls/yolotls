@@ -38,10 +38,12 @@ pub enum CipherSuitesError {
     InvalidLength,
 }
 
-use zerocopy::{TryFromBytes, error::TryCastError};
+use zerocopy::{error::TryCastError, TryFromBytes};
 
 impl RecordError {
-    pub(crate) fn from_zero_copy<Src, Dst: ?Sized + TryFromBytes>(e: TryCastError<Src, Dst>) -> Self {
+    pub(crate) fn from_zero_copy<Src, Dst: ?Sized + TryFromBytes>(
+        e: TryCastError<Src, Dst>,
+    ) -> Self {
         match e {
             TryCastError::Alignment(..) => Self::Alignment,
             TryCastError::Validity(..) => Self::Validity,

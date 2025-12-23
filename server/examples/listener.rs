@@ -2,13 +2,12 @@
 
 use ytls_server::{TlsServerCtx, TlsServerCtxConfig};
 
-use std::net::{TcpListener, TcpStream};
 use std::io::Read;
+use std::net::{TcpListener, TcpStream};
 
 fn handle_client(mut stream: TcpStream) {
-
     let mut buf: [u8; 8192] = [0; 8192];
-    
+
     let s = stream.read(&mut buf).unwrap();
 
     println!("Read {s} bytes");
@@ -16,10 +15,8 @@ fn handle_client(mut stream: TcpStream) {
 
     let tls_cfg = TlsServerCtxConfig {};
     let mut tls_ctx = TlsServerCtx::with_config(tls_cfg).unwrap();
-    
+
     tls_ctx.process_tls_records(&buf[0..s]).unwrap();
-
-
 }
 
 fn main() -> std::io::Result<()> {

@@ -18,14 +18,16 @@ pub trait ExtSniProcessor {
 }
 
 /// TLS Server Name Indication (SNI) handling
-pub struct TlsExtSni {
-}
+pub struct TlsExtSni {}
 
 impl TlsExtSni {
     /// Check with the provided Processor whether
     /// any of the Client Hello provided SNIs matches
     #[inline]
-    pub fn client_hello_cb<P: ExtSniProcessor>(p: &mut P, sni_raw: &[u8]) -> Result<(), TlsExtError> {
+    pub fn client_hello_cb<P: ExtSniProcessor>(
+        p: &mut P,
+        sni_raw: &[u8],
+    ) -> Result<(), TlsExtError> {
         if sni_raw.len() < 2 {
             return Err(TlsExtError::InvalidLength);
         }
@@ -42,9 +44,8 @@ impl TlsExtSni {
         }
 
         let mut processed = 0;
-        
-        loop {
 
+        loop {
             if remaining.len() < 3 {
                 return Err(TlsExtError::InvalidLength);
             }
@@ -56,18 +57,18 @@ impl TlsExtSni {
             };
             remaining = &remaining[3..];
             processed += 3;
-            
+
             if entry_len as usize > remaining.len() {
                 return Err(TlsExtError::EntryOverflow);
             }
 
             match p.sni(entry_kind, &remaining[0..entry_len as usize]) {
                 true => break,
-                false => {},
+                false => {}
             }
-            
+
             processed += entry_len as usize;
-            
+
             if processed == expected_len {
                 break;
             }
@@ -81,14 +82,14 @@ impl TlsExtSni {
 #[cfg(test)]
 mod test {
     use super::*;
-    use rstest::rstest;
     use hex_literal::hex;
+    use rstest::rstest;
 
     #[derive(Debug, PartialEq)]
     struct Tester {
         sni_seen: Vec<(EntrySniKind, Vec<u8>)>,
     }
-    
+
     impl ExtSniProcessor for Tester {
         fn sni(&mut self, k: EntrySniKind, name: &[u8]) -> bool {
             self.sni_seen.push((k, name.to_vec()));
@@ -102,7 +103,11 @@ mod test {
         Tester { sni_seen: vec![(EntrySniKind::DnsHostname, hex!("746573742e72757374637279702e746f").to_vec())] },
         Ok(())
     )]
-    fn sni_client_hello_one_ok(#[case] sni_raw_t: &str, #[case] expected_tester: Tester, #[case] expected_res: Result<(), TlsExtError>) {
+    fn sni_client_hello_one_ok(
+        #[case] sni_raw_t: &str,
+        #[case] expected_tester: Tester,
+        #[case] expected_res: Result<(), TlsExtError>,
+    ) {
         let sni_raw = hex::decode(sni_raw_t).unwrap();
         let mut tester = Tester { sni_seen: vec![] };
         let res = TlsExtSni::client_hello_cb(&mut tester, &sni_raw);

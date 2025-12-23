@@ -10,11 +10,10 @@ pub use cipher_suites::CipherSuites;
 mod client_hello;
 pub use client_hello::ClientHello;
 
-
 use crate::error::RecordError;
 
 use zerocopy::byteorder::network_endian::U16 as N16;
-use zerocopy::{TryFromBytes, IntoBytes, KnownLayout, Immutable, Unaligned};
+use zerocopy::{Immutable, IntoBytes, KnownLayout, TryFromBytes, Unaligned};
 
 #[derive(TryFromBytes, IntoBytes, KnownLayout, Immutable, Unaligned)]
 #[repr(u8)]
@@ -53,19 +52,21 @@ pub struct HandshakeMsg<'r> {
 }
 
 impl<'r> HandshakeMsg<'r> {
-    pub fn parse<P: HelloProcessor>(prc: &mut P, bytes: &'r [u8]) -> Result<(Self, &'r [u8]), RecordError> {
-        let (hdr, rest) = HandshakeHdr::try_ref_from_prefix(bytes)
-            .map_err(|e| RecordError::from_zero_copy(e))?;
+    pub fn parse<P: HelloProcessor>(
+        prc: &mut P,
+        bytes: &'r [u8],
+    ) -> Result<(Self, &'r [u8]), RecordError> {
+        let (hdr, rest) =
+            HandshakeHdr::try_ref_from_prefix(bytes).map_err(|e| RecordError::from_zero_copy(e))?;
 
         let (msg, rest_next) = match hdr.msg_type {
             HandshakeType::ClientHello => {
                 let (c_hello, r_next) = ClientHello::parse(prc, rest)?;
                 (MsgType::ClientHello(c_hello), r_next)
-                
-            },
+            }
             _ => todo!(),
         };
-        
+
         Ok((Self { hdr, msg }, rest_next))
     }
 }
