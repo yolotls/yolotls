@@ -1,4 +1,4 @@
 [workspace]
-members = ["api/*"]
-
+members = ["record", "server"]
+exclude = ["examples/*"]
 resolver = "2"

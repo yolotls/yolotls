@@ -1,0 +1,32 @@
+[package]
+name = "ytls-server"
+version = "0.0.1"
+edition = "2021"
+description = "yolox sans-io TLS server context"
+homepage = "https://github.com/yolotls/yolotls"
+keywords = ["io", "uring", "epoll", "async"]
+license = "Apache-2.0/MIT"
+readme = "README.md"
+repository = "https://github.com/yolotls/yolotls"
+categories = ["science"]
+
+[dev-dependencies]
+hex = "0.4.3"
+rstest = "0.26"
+hex-literal = "1.1"
+
+[features]
+default = []
+std = []
+
+[dependencies]
+ytls-extensions = { path = "../extensions" }
+ytls-traits = { path = "../traits" }
+ytls-record = { path = "../record" }
+ytls-typed = { path = "../typed" }
+hex = "0.4.3"
+#zerocopy = { version = "0.8", default-features = false, features = ["derive"] }
+
+[package.metadata.docs.rs]
+features = []
+

@@ -25,6 +25,10 @@ yoloTLS is when / We Can / but not necessarily whether / We Should
 
 Any /current/new/ goal can be adjusted / adopted etc. by proposing via a PR to above list linking to the relevant proposed Goal.
 
+# Crates
+
+- record - Record layer parsing
+
 # Non-Goals as of Now
 
 - **We Should**: Taking It Seriously (tm)

@@ -1,0 +1,73 @@
+---
+source: record/src/record.rs
+expression: r
+---
+Record {
+    header: RecordHeader {
+        content_type: Handshake,
+        legacy_version: [
+            3,
+            1,
+        ],
+        record_length: U16(
+            663,
+        ),
+    },
+    content: Handshake(
+        HandshakeMsg {
+            hdr: HandshakeHdr {
+                msg_type: ClientHello,
+                msg_length: [
+                    0,
+                    2,
+                    147,
+                ],
+            },
+            msg: ClientHello(
+                ClientHello {
+                    hdr: ClientHelloHdr {
+                        legacy_version: [
+                            3,
+                            3,
+                        ],
+                        client_random: [
+                            11,
+                            119,
+                            228,
+                            250,
+                            4,
+                            206,
+                            180,
+                            220,
+                            2,
+                            108,
+                            116,
+                            33,
+                            63,
+                            226,
+                            165,
+                            92,
+                            20,
+                            136,
+                            50,
+                            25,
+                            185,
+                            230,
+                            247,
+                            176,
+                            181,
+                            3,
+                            238,
+                            43,
+                            74,
+                            51,
+                            29,
+                            132,
+                        ],
+                        ses_id_len: 32,
+                    },
+                },
+            ),
+        },
+    ),
+}
