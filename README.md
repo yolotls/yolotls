@@ -25,6 +25,15 @@ yoloTLS is when / We Can / but not necessarily whether / We Should
 
 Any /current/new/ goal can be adjusted / adopted etc. by proposing via a PR to above list linking to the relevant proposed Goal.
 
+# Crates
+
+| Crate           | Description                          |
+| :---            | :---                                 |
+| [ytls-record](./record)     | Record layer                         |
+| [ytls-typed](./typed)      | Typed conversions from protocol data |
+| [ytls-server](./server)     | Server context                       |
+| [ytls-extensions](./extensions) | Extensions handling                  |
+
 # Non-Goals as of Now
 
 - **We Should**: Taking It Seriously (tm)

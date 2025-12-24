@@ -1,0 +1,28 @@
+[package]
+name = "ytls-typed"
+version = "0.0.1"
+edition = "2021"
+description = "yolox TLS rich types"
+homepage = "https://github.com/yolotls/yolotls"
+keywords = ["io", "uring", "epoll", "async"]
+license = "Apache-2.0/MIT"
+readme = "README.md"
+repository = "https://github.com/yolotls/yolotls"
+categories = ["science"]
+
+[dev-dependencies]
+hex = "0.4.3"
+rstest = "0.26"
+hex-literal = "1.1"
+insta = "1.45"
+
+[features]
+default = []
+std = []
+
+[dependencies]
+num_enum = { version = "0.7", default-features = false }
+
+[package.metadata.docs.rs]
+features = []
+

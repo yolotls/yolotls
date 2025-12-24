@@ -1,0 +1,23 @@
+[package]
+name = "ytls-traits"
+version = "0.0.1"
+edition = "2021"
+description = "yolox TLS traits"
+homepage = "https://github.com/yolotls/yolotls"
+keywords = ["io", "uring", "epoll", "async"]
+license = "Apache-2.0/MIT"
+readme = "README.md"
+repository = "https://github.com/yolotls/yolotls"
+categories = ["science"]
+
+[dev-dependencies]
+
+[features]
+default = []
+std = []
+
+[dependencies]
+
+[package.metadata.docs.rs]
+features = []
+
