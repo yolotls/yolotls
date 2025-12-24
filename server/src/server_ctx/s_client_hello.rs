@@ -2,7 +2,7 @@
 
 use super::TlsServerCtx;
 use crate::TlsServerCtxConfig;
-use ytls_traits::HelloProcessor;
+use ytls_traits::ClientHelloProcessor;
 
 use ytls_extensions::{ExtAlpnProcessor, TlsExtAlpn};
 use ytls_extensions::{ExtCompressCertProcessor, TlsExtCompressCert};
@@ -17,7 +17,7 @@ use ytls_extensions::{ExtSniProcessor, TlsExtSni};
 use ytls_extensions::{ExtVersionProcessor, TlsExtVersion};
 use ytls_typed::{TlsCipherSuite, TlsExtension};
 
-impl<C: TlsServerCtxConfig> HelloProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig> ClientHelloProcessor for TlsServerCtx<C> {
     #[inline]
     fn handle_extension(&mut self, ext_id: u16, ext_data: &[u8]) -> () {
         let ext_t: TlsExtension = ext_id.try_into().unwrap();
@@ -96,7 +96,11 @@ impl<C: TlsServerCtxConfig> ExtSniProcessor for TlsServerCtx<C> {
             Ok(h) => h,
             Err(_) => return false,
         };
-        self.config.dns_host_name(host)
+        let r = self.config.dns_host_name(host);
+        if r {
+            self.downstream_found_host = true;
+        }
+        r
     }
 }
 
@@ -127,7 +131,13 @@ use ytls_typed::SignatureAlgorithm;
 impl<C: TlsServerCtxConfig> ExtSigAlgProcessor for TlsServerCtx<C> {
     #[inline]
     fn signature_algorithm(&mut self, s_alg: SignatureAlgorithm) -> bool {
+        //println!("s_alg = {:?}", s_alg);
+        if s_alg == SignatureAlgorithm::RsaPkcs1Sha256 {
+            self.sig_alg_rsa_pkcs1_sha256_supported = true;
+            return true;
+        }
         if s_alg == SignatureAlgorithm::Ed25519 {
+            self.sig_alg_ed25519_supported = true;
             return true;
         }
         false
@@ -139,7 +149,7 @@ use ytls_typed::Version;
 impl<C: TlsServerCtxConfig> ExtVersionProcessor for TlsServerCtx<C> {
     #[inline]
     fn supported_version(&mut self, s_ver: Version) -> bool {
-        println!("Version {:?}", s_ver);
+        //println!("Version {:?}", s_ver);
         if s_ver == Version::Tls13 {
             self.tls13_supported = true;
             return true;

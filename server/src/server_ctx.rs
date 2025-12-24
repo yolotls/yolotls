@@ -27,6 +27,8 @@ pub struct TlsServerCtx<C> {
     record_size_limit: u16,
     /// Signed Certificage Timestamps
     signed_cert_ts: bool,
+    /// Sig alg RsaPkcs1Sha256 supported ?
+    sig_alg_rsa_pkcs1_sha256_supported: bool,
 }
 
 impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
@@ -42,12 +44,33 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
             extended_main_secret: false,
             record_size_limit: 0,
             signed_cert_ts: false,
+            sig_alg_rsa_pkcs1_sha256_supported: false,
         })
     }
     /// Process incoming TLS Records
     pub fn process_tls_records(&mut self, data: &[u8]) -> Result<(), TlsServerCtxError> {
-        let rec = Record::parse(self, data).map_err(|e| TlsServerCtxError::Record(e))?;
+        let rec = Record::parse_client(self, data).map_err(|e| TlsServerCtxError::Record(e))?;
         println!("Rec = {:?}", rec);
+
+        println!("TLS13 Supported = {}", self.tls13_supported);
+        println!(
+            "chacha20_poly1305_sha256_supported = {}",
+            self.chacha20_poly1305_sha256_supported
+        );
+        println!(
+            "sig_alg_ed25519_supported_supported = {}",
+            self.sig_alg_ed25519_supported
+        );
+        println!("extended_main_secret = {}", self.extended_main_secret);
+        println!("record_size_limit = {}", self.record_size_limit);
+        println!("signed_cert_ts = {}", self.signed_cert_ts);
+        println!("group_x25519_supported = {}", self.group_x25519_supported);
+        println!("downstream_found_host = {}", self.downstream_found_host);
+        println!(
+            "sig_alg_rsa_pkcs1_sha256_supported = {}",
+            self.sig_alg_rsa_pkcs1_sha256_supported
+        );
+
         todo!()
     }
 }

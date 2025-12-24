@@ -1,6 +1,6 @@
 //! Handhsake Record
 
-use ytls_traits::HelloProcessor;
+use ytls_traits::ClientHelloProcessor;
 
 mod extensions;
 pub use extensions::Extensions;
@@ -52,7 +52,7 @@ pub struct HandshakeMsg<'r> {
 }
 
 impl<'r> HandshakeMsg<'r> {
-    pub fn parse<P: HelloProcessor>(
+    pub fn client_parse<P: ClientHelloProcessor>(
         prc: &mut P,
         bytes: &'r [u8],
     ) -> Result<(Self, &'r [u8]), RecordError> {

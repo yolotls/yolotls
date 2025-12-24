@@ -1,6 +1,6 @@
 //! Extensions parsing
 
-use ytls_traits::HelloProcessor;
+use ytls_traits::ClientHelloProcessor;
 
 use crate::error::ExtensionsError;
 
@@ -9,7 +9,7 @@ use zerocopy::byteorder::network_endian::U16 as N16;
 pub struct Extensions {}
 
 impl Extensions {
-    pub fn parse_extensions<P: HelloProcessor>(
+    pub fn parse_client_extensions<P: ClientHelloProcessor>(
         prc: &mut P,
         bytes: &[u8],
     ) -> Result<(), ExtensionsError> {

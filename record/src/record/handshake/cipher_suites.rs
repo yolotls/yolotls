@@ -3,7 +3,7 @@
 //! which is the responsibility of the downstream
 //! impl HelloProcessor.
 
-use ytls_traits::HelloProcessor;
+use ytls_traits::ClientHelloProcessor;
 
 use crate::error::CipherSuitesError;
 
@@ -13,8 +13,8 @@ use zerocopy::byteorder::network_endian::U16 as N16;
 pub struct CipherSuites {}
 
 impl CipherSuites {
-    /// Parse cipher suites from the byte slice and pass them to the provided HelloProcessor
-    pub fn parse_cipher_suites<P: HelloProcessor>(
+    /// Parse cipher suites from the byte slice and pass them to the provided ClientHelloProcessor
+    pub fn parse_cipher_suites<P: ClientHelloProcessor>(
         prc: &mut P,
         bytes: &[u8],
     ) -> Result<(), CipherSuitesError> {
@@ -41,7 +41,7 @@ mod test {
     struct Tester {
         suites_encountered: Vec<[u8; 2]>,
     }
-    impl HelloProcessor for Tester {
+    impl ClientHelloProcessor for Tester {
         fn handle_extension(&mut self, _ext_id: u16, _ext_data: &[u8]) -> () {
             unreachable!()
         }

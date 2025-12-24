@@ -1,6 +1,6 @@
 // Simple yolotls Server - Record parsing example
 
-use ytls_traits::HelloProcessor;
+use ytls_traits::ClientHelloProcessor;
 
 use std::io::Read;
 use std::net::{TcpListener, TcpStream};
@@ -9,7 +9,7 @@ struct TlsProcessor {}
 
 // See the IANA registered ext_data / cipher_suite vectors here
 // https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml
-impl HelloProcessor for TlsProcessor {
+impl ClientHelloProcessor for TlsProcessor {
     #[inline]
     fn handle_extension(&mut self, ext_id: u16, ext_data: &[u8]) -> () {
         println!(
@@ -34,7 +34,7 @@ fn handle_client(mut stream: TcpStream) {
 
     let mut yum = TlsProcessor {};
 
-    let hdr = ytls_record::Record::parse(&mut yum, &buf[0..s]).unwrap();
+    let hdr = ytls_record::Record::parse_client(&mut yum, &buf[0..s]).unwrap();
 
     println!("Header = {:?}", hdr);
 }

@@ -1,6 +1,6 @@
 //! ClientHello
 
-use ytls_traits::HelloProcessor;
+use ytls_traits::ClientHelloProcessor;
 
 use super::CipherSuites;
 use super::Extensions;
@@ -24,7 +24,7 @@ pub struct ClientHello<'r> {
 }
 
 impl<'r> ClientHello<'r> {
-    pub fn parse<P: HelloProcessor>(
+    pub fn parse<P: ClientHelloProcessor>(
         prc: &mut P,
         bytes: &'r [u8],
     ) -> Result<(Self, &'r [u8]), RecordError> {
@@ -66,7 +66,7 @@ impl<'r> ClientHello<'r> {
         let (extensions, rest_next) = rest.split_at(extensions_len.into());
         rest = rest_next;
 
-        Extensions::parse_extensions(prc, extensions)
+        Extensions::parse_client_extensions(prc, extensions)
             .map_err(|e| RecordError::ClientHello(ClientHelloError::Extensions(e)))?;
 
         Ok((ClientHello { hdr: hello_hdr }, rest))
