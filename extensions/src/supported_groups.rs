@@ -35,7 +35,7 @@ impl TlsExtGroup {
             return Err(TlsExtError::NoData);
         }
 
-        let mut remaining = &group_raw[2..];
+        let remaining = &group_raw[2..];
         let expected_len = remaining.len();
 
         if group_len as usize != expected_len {

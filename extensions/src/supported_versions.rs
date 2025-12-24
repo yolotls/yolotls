@@ -13,7 +13,7 @@ pub trait ExtVersionProcessor {
 pub struct TlsExtVersion {}
 
 impl TlsExtVersion {
-    ///
+    /// Client Hello supported versions callback
     #[inline]
     pub fn client_supported_version_cb<P: ExtVersionProcessor>(
         p: &mut P,
@@ -24,16 +24,24 @@ impl TlsExtVersion {
         }
 
         let versions_len = versions_raw[0];
-        
+
         if versions_len == 0 {
             return Err(TlsExtError::NoData);
         }
 
-        let mut remaining = &versions_raw[1..];
+        if versions_raw.len() < 2 {
+            return Err(TlsExtError::InvalidLength);
+        }
+
+        let remaining = &versions_raw[1..];
         let expected_len = remaining.len();
 
+        if expected_len != versions_len as usize {
+            return Err(TlsExtError::InvalidLength);
+        }
+
         let mut versions_i = remaining.chunks(2);
-        
+
         while let Some(version_raw) = versions_i.next() {
             let version = u16::from_be_bytes([version_raw[0], version_raw[1]]);
             p.supported_version(version.into());

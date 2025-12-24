@@ -29,16 +29,15 @@ impl TlsExtAlpn {
         if alpns_raw_len_remaining == 0 {
             return Err(TlsExtError::NoData);
         }
-        
+
         if alpns_expected_len as usize != alpns_raw_len_remaining {
             return Err(TlsExtError::InvalidLength);
         }
-                
-        let mut remaining = &alpn_raw[2..];        
+
+        let mut remaining = &alpn_raw[2..];
 
         let expected_len: usize = remaining.len();
-        
-        
+
         let mut processed: usize = 0;
 
         loop {
@@ -48,21 +47,26 @@ impl TlsExtAlpn {
             let alpn_len = remaining[0] as usize;
 
             remaining = &remaining[1..];
-            
+            processed += 1;
+
             if alpn_len > remaining.len() {
                 return Err(TlsExtError::EntryOverflow);
             }
 
             let (alpn, remaining_next) = remaining.split_at(alpn_len as usize);
+            processed += alpn_len as usize;
 
             p.alpn(alpn.into());
-            
+
             remaining = remaining_next;
+
+            if processed > expected_len {
+                return Err(TlsExtError::EntryOverflow);
+            }
 
             if remaining.len() == 0 {
                 break;
             }
-
         }
 
         Ok(())

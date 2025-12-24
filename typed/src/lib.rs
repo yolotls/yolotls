@@ -48,3 +48,7 @@ pub use typed_versions::*;
 mod typed_alpns;
 #[doc(inline)]
 pub use typed_alpns::*;
+
+mod typed_certificate_compress;
+#[doc(inline)]
+pub use typed_certificate_compress::*;

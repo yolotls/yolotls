@@ -5,7 +5,7 @@ use ytls_typed::SignatureAlgorithm;
 
 /// Downstream Group Processor
 pub trait ExtSigAlgProcessor {
-    ///
+    /// Indicate support for the given Signature Algorithm.
     fn signature_algorithm(&mut self, _: SignatureAlgorithm) -> bool;
 }
 
@@ -13,8 +13,7 @@ pub trait ExtSigAlgProcessor {
 pub struct TlsExtSigAlg {}
 
 impl TlsExtSigAlg {
-    /// Check with the provided Processor whether
-    /// any of the Client Hello provided SNIs matches
+    /// Parse all the signature algorithms from the Client Hello extension data
     #[inline]
     pub fn client_signature_algorithm_cb<P: ExtSigAlgProcessor>(
         p: &mut P,
@@ -29,7 +28,7 @@ impl TlsExtSigAlg {
             return Err(TlsExtError::NoData);
         }
 
-        let mut remaining = &sig_alg_raw[2..];
+        let remaining = &sig_alg_raw[2..];
         let expected_len = remaining.len();
 
         if sig_algs_len as usize != expected_len {

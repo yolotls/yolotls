@@ -103,7 +103,7 @@ mod test {
         Tester { sni_seen: vec![(EntrySniKind::DnsHostname, hex!("746573742e72757374637279702e746f").to_vec())] },
         Ok(())
     )]
-    fn sni_client_hello_one_ok(
+    fn client_hello_one_ok(
         #[case] sni_raw_t: &str,
         #[case] expected_tester: Tester,
         #[case] expected_res: Result<(), TlsExtError>,
