@@ -198,13 +198,13 @@ impl<C: TlsServerCtxConfig> ExtEncryptedClientHelloProcessor for TlsServerCtx<C>
         enc: &[u8],
         payload: &[u8],
     ) -> () {
-        println!(
-            "encrypted_client_hello config_id {} kdf {:?} aead {:?} enc.len {} payload.len {}",
-            config_id,
-            kdf,
-            aead,
-            enc.len(),
-            payload.len()
-        );
+        //println!(
+        //    "encrypted_client_hello config_id {} kdf {:?} aead {:?} enc.len {} payload.len {}",
+        //    config_id,
+        //    kdf,
+        //    aead,
+        //    enc.len(),
+        //    payload.len()
+        //);
     }
 }
