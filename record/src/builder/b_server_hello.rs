@@ -64,12 +64,15 @@ impl<const N: usize> BufStaticServerHello<N> {
         // Handshake header +4 bytes
         //-----------------------
         cursor.try_incr(4)?;
-        buffer[5] = 0x02; // Server Hello
-        let pos_server_hello_len_start = 7; // u16 -> u24
-                                            // bytes 6,7,8 length of the ServerHello
-                                            //-----------------------
-                                            // ServerHello follows
-                                            //-----------------------
+        // Server Hello == 0x02
+        buffer[5] = 0x02;
+        // Leaving one byte zero due to this being u24
+        // and we only have u16
+        let pos_server_hello_len_start = 7;
+        // bytes 6,7,8 length of the ServerHello
+        //-----------------------
+        // ServerHello follows
+        //-----------------------
         cursor.try_incr(34)?;
         buffer[9..11].copy_from_slice(s.legacy_version());
         buffer[11..43].copy_from_slice(s.server_random());
