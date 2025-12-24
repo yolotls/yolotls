@@ -1,6 +1,7 @@
 //! Record Builders
 
 mod b_server_hello;
+mod formatter;
 
 use crate::error::BuilderError;
 

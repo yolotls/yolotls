@@ -10,34 +10,7 @@ pub struct BufStaticServerHello<const N: usize> {
     bytes_len: usize,
 }
 
-struct WriteCursor<const N: usize> {
-    written: usize,
-}
-
-impl<const N: usize> WriteCursor<N> {
-    #[inline]
-    fn new() -> Self {
-        Self { written: 0 }
-    }
-    fn cur_as_usize(&self) -> usize {
-        self.written
-    }
-    fn cur_as_u16(&self) -> u16 {
-        self.written as u16
-    }
-    #[inline]
-    fn try_incr(&mut self, i: usize) -> Result<usize, BuilderError> {
-        if self.written + i > N {
-            return Err(BuilderError::Overflow);
-        }
-        if self.written + i > u16::MAX as usize {
-            return Err(BuilderError::Overflow);
-        }
-
-        self.written += i;
-        Ok(self.written)
-    }
-}
+use super::formatter::EncoderU16;
 
 impl<const N: usize> BufStaticServerHello<N> {
     pub(crate) fn as_ref(&self) -> &[u8] {
@@ -48,12 +21,12 @@ impl<const N: usize> BufStaticServerHello<N> {
     pub(crate) fn static_from_untyped<S: UntypedServerHelloBuilder>(
         s: &S,
     ) -> Result<Self, BuilderError> {
-        let mut cursor = WriteCursor::<N>::new();
+        let mut cursor = EncoderU16::<N>::new();
         let mut buffer: [u8; N] = [0; N];
         //-----------------------
-        // Record header +6 bytes
+        // Record header +5 bytes
         //-----------------------
-        cursor.try_incr(5)?;
+        cursor.try_skip_only(5)?;
         buffer[0] = 0x16; // Handshake Record
         let version_b = s.legacy_version();
         buffer[1] = version_b[0];
@@ -63,7 +36,7 @@ impl<const N: usize> BufStaticServerHello<N> {
         //-----------------------
         // Handshake header +4 bytes
         //-----------------------
-        cursor.try_incr(4)?;
+        cursor.try_skip_only(4)?;
         // Server Hello == 0x02
         buffer[5] = 0x02;
         // Leaving one byte zero due to this being u24
@@ -73,19 +46,19 @@ impl<const N: usize> BufStaticServerHello<N> {
         //-----------------------
         // ServerHello follows
         //-----------------------
-        cursor.try_incr(34)?;
-        buffer[9..11].copy_from_slice(s.legacy_version());
-        buffer[11..43].copy_from_slice(s.server_random());
+        cursor.try_fill_with(&mut buffer, s.legacy_version())?;
+        cursor.try_fill_with(&mut buffer, s.server_random())?;
+
         let session_id = s.legacy_session_id();
         if session_id.len() > 255 {
             return Err(BuilderError::SessionIdOverflow);
         }
-        cursor.try_incr(1 + session_id.len())?;
+        cursor.try_skip_only(1 + session_id.len())?;
         buffer[43] = session_id.len() as u8;
         let end_session_id = 44 + session_id.len();
         buffer[44..end_session_id].copy_from_slice(&session_id[0..session_id.len()]);
 
-        cursor.try_incr(2)?;
+        cursor.try_skip_only(2)?;
         let mut pos = end_session_id;
         buffer[pos..pos + 2].copy_from_slice(s.selected_cipher_suite());
         pos += 2;
@@ -93,7 +66,7 @@ impl<const N: usize> BufStaticServerHello<N> {
         //------------------------
         // Compression method +1
         //------------------------
-        cursor.try_incr(1)?;
+        cursor.try_skip_only(1)?;
         let compression_method: u8 = match s.selected_legacy_insecure_compression_method() {
             None => 0,
             Some(x) => x,
@@ -104,7 +77,7 @@ impl<const N: usize> BufStaticServerHello<N> {
         //------------------------
         // Extensions Length +2
         //------------------------
-        cursor.try_incr(2)?;
+        cursor.try_skip_only(2)?;
         let pos_extension_len_start = pos;
         pos += 2;
 
@@ -123,7 +96,7 @@ impl<const N: usize> BufStaticServerHello<N> {
             }
             let ext_data_len: u16 = ext_data_len_usize as u16;
 
-            cursor.try_incr(ext_data_len_usize + 4)?;
+            cursor.try_skip_only(ext_data_len_usize + 4)?;
             extensions_total_len += 4 + ext_data_len;
 
             buffer[ext_pos..ext_pos + 2].copy_from_slice(&ext.to_be_bytes());
