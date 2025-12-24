@@ -7,6 +7,7 @@ use ytls_traits::HelloProcessor;
 use ytls_extensions::{ExtAlpnProcessor, TlsExtAlpn};
 use ytls_extensions::{ExtCompressCertProcessor, TlsExtCompressCert};
 use ytls_extensions::{ExtDelegatedCredentialProcessor, TlsExtDelegatedCredential};
+use ytls_extensions::{ExtEncryptedClientHelloProcessor, TlsExtEncryptedClientHello};
 use ytls_extensions::{ExtGroupProcessor, TlsExtGroup};
 use ytls_extensions::{ExtKeyShareProcessor, TlsExtKeyShare};
 use ytls_extensions::{ExtPskeProcessor, PskeKind, TlsExtPske};
@@ -54,6 +55,9 @@ impl<C: TlsServerCtxConfig> HelloProcessor for TlsServerCtx<C> {
                 TlsExtCompressCert::client_compress_certificate_cb(self, ext_data)
             }
             TlsExtension::PskKeyExchangeModes => TlsExtPske::client_pske_cb(self, ext_data),
+            TlsExtension::EncryptedClientHello => {
+                TlsExtEncryptedClientHello::client_encrypted_hello_cb(self, ext_data)
+            }
             _ => {
                 println!(
                     "Missing Handle_extensions ext_id: {} / {:?} - ext_adta: {}",
@@ -180,5 +184,27 @@ impl<C: TlsServerCtxConfig> ExtCompressCertProcessor for TlsServerCtx<C> {
     #[inline]
     fn compress_certificate(&mut self, _alg: CertificateCompressKind) -> () {
         //println!("Certificate Compress avail: {:?}", alg);
+    }
+}
+
+use ytls_typed::{HaeadKind, HkdfKind};
+
+impl<C: TlsServerCtxConfig> ExtEncryptedClientHelloProcessor for TlsServerCtx<C> {
+    fn encrypted_client_hello_outer(
+        &mut self,
+        config_id: u8,
+        kdf: HkdfKind,
+        aead: HaeadKind,
+        enc: &[u8],
+        payload: &[u8],
+    ) -> () {
+        println!(
+            "encrypted_client_hello config_id {} kdf {:?} aead {:?} enc.len {} payload.len {}",
+            config_id,
+            kdf,
+            aead,
+            enc.len(),
+            payload.len()
+        );
     }
 }

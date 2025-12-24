@@ -97,3 +97,10 @@ pub use supported_versions::*;
 mod key_share;
 #[doc(inline)]
 pub use key_share::*;
+
+//-----------------------------------------------
+// 65037 - encrypted_client_hello
+//-----------------------------------------------
+mod encrypted_client_hello;
+#[doc(inline)]
+pub use encrypted_client_hello::*;

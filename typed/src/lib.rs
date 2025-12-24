@@ -52,3 +52,7 @@ pub use typed_alpns::*;
 mod typed_certificate_compress;
 #[doc(inline)]
 pub use typed_certificate_compress::*;
+
+mod typed_hpke;
+#[doc(inline)]
+pub use typed_hpke::*;
