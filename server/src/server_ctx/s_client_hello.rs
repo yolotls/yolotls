@@ -139,6 +139,7 @@ use ytls_typed::Version;
 impl<C: TlsServerCtxConfig> ExtVersionProcessor for TlsServerCtx<C> {
     #[inline]
     fn supported_version(&mut self, s_ver: Version) -> bool {
+        println!("Version {:?}", s_ver);
         if s_ver == Version::Tls13 {
             self.tls13_supported = true;
             return true;
