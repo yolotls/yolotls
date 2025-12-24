@@ -5,7 +5,7 @@ use crate::error::BuilderError;
 use ytls_traits::UntypedServerHelloBuilder;
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct BufStaticServerHello<const N: usize> {
+pub struct BufStaticServerHello<const N: usize> {
     bytes_buf: [u8; N],
     bytes_len: usize,
 }
@@ -194,7 +194,7 @@ mod test_ok_no_extensions {
             &[]
         }
         /// Given extension relevant encoded data. See [`ytls_extensions`] to encode.
-        fn extension_data(&self, ext: u16) -> &[u8] {
+        fn extension_data(&self, _ext: u16) -> &[u8] {
             todo!()
         }
     }
