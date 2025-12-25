@@ -19,7 +19,7 @@ impl HelloProcessor for TlsProcessor {
         );
     }
     #[inline]
-    fn handle_cipher_suite(&mut self, cipher_suite: &[u8]) -> () {
+    fn handle_cipher_suite(&mut self, cipher_suite: &[u8; 2]) -> () {
         println!("Handle_cipher_suites: {}", hex::encode(cipher_suite));
     }
 }

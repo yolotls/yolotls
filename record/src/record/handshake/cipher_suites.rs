@@ -45,7 +45,7 @@ mod test {
         fn handle_extension(&mut self, _ext_id: u16, _ext_data: &[u8]) -> () {
             unreachable!()
         }
-        fn handle_cipher_suite(&mut self, cipher_suite: &[u8]) -> () {
+        fn handle_cipher_suite(&mut self, cipher_suite: &[u8; 2]) -> () {
             self.suites_encountered
                 .push([cipher_suite[0], cipher_suite[1]]);
         }

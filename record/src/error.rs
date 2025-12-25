@@ -51,3 +51,11 @@ impl RecordError {
         }
     }
 }
+
+#[derive(Debug, PartialEq)]
+pub enum BuilderError {
+    /// Static buffer is not long enough to hold the buffered record.
+    Overflow,
+    /// Session Id length is one byte but size was > 255
+    SessionIdOverflow,
+}

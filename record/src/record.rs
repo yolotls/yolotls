@@ -94,7 +94,7 @@ mod test {
         fn handle_extension(&mut self, ext_id: u16, _ext_data: &[u8]) -> () {
             self.extensions_encountered.push(ext_id);
         }
-        fn handle_cipher_suite(&mut self, cipher_suite: &[u8]) -> () {
+        fn handle_cipher_suite(&mut self, cipher_suite: &[u8; 2]) -> () {
             self.suites_encountered
                 .push([cipher_suite[0], cipher_suite[1]]);
         }

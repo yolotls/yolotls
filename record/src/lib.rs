@@ -28,3 +28,7 @@ pub use error::*;
 mod record;
 #[doc(inline)]
 pub use record::*;
+
+mod builder;
+#[doc(inline)]
+pub use builder::*;
