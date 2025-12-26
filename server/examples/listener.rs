@@ -3,7 +3,7 @@
 use ytls_server::{TlsServerCtx, TlsServerCtxConfig};
 use ytls_typed::Alpn;
 
-use std::io::Read;
+use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
 struct MyTlsServerCfg;
@@ -22,18 +22,50 @@ impl TlsServerCtxConfig for MyTlsServerCfg {
     }
 }
 
+struct Buffers {
+    out_buf: Vec<u8>,
+}
+
+use ytls_server::TlsLeft;
+
+impl TlsLeft for Buffers {
+    fn send_record_out(&mut self, data: &[u8]) -> () {
+        self.out_buf.extend_from_slice(data);
+    }
+}
+
 fn handle_client(mut stream: TcpStream) {
     let mut buf: [u8; 8192] = [0; 8192];
 
-    let s = stream.read(&mut buf).unwrap();
+    let mut tls_buffers = Buffers {
+        out_buf: Vec::with_capacity(8192),
+    };
 
-    println!("Read {s} bytes");
-    println!("Bytes = {}", hex::encode(&buf[0..s]));
+    loop {
+        let s = stream.read(&mut buf).unwrap();
 
-    let tls_cfg = MyTlsServerCfg {};
-    let mut tls_ctx = TlsServerCtx::with_config(tls_cfg).unwrap();
+        if s == 0 {
+            println!("Client disconnected.");
+            break;
+        }
 
-    tls_ctx.process_tls_records(&buf[0..s]).unwrap();
+        println!("Read {s} bytes");
+        println!("Bytes = {}", hex::encode(&buf[0..s]));
+
+        let tls_cfg = MyTlsServerCfg {};
+        let mut tls_ctx = TlsServerCtx::with_config(tls_cfg).unwrap();
+
+        tls_ctx
+            .process_tls_records(&mut tls_buffers, &buf[0..s])
+            .unwrap();
+
+        println!("Buffer out len = {}", tls_buffers.out_buf.len());
+
+        if tls_buffers.out_buf.len() > 0 {
+            stream.write_all(&tls_buffers.out_buf).unwrap();
+            tls_buffers.out_buf.clear();
+        }
+    }
 }
 
 fn main() -> std::io::Result<()> {

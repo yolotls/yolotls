@@ -26,6 +26,7 @@ ytls-record = { path = "../record" }
 ytls-typed = { path = "../typed" }
 hex = "0.4.3"
 #zerocopy = { version = "0.8", default-features = false, features = ["derive"] }
+x25519-dalek = { version = "=3.0.0-pre.3", default-features = false, features = ["getrandom"] }
 
 [package.metadata.docs.rs]
 features = []

@@ -1,6 +1,10 @@
 mod handshake;
 #[doc(inline)]
-pub use handshake::HandshakeMsg;
+pub use handshake::*;
+
+mod alert;
+#[doc(inline)]
+pub use alert::*;
 
 use crate::error::RecordError;
 
@@ -12,7 +16,7 @@ use ytls_traits::ClientHelloProcessor;
 /// TLS Record Conten Type
 #[derive(TryFromBytes, IntoBytes, KnownLayout, Immutable, Unaligned)]
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum ContentType {
     /// Change Cipher Spec
     ChangeCipherSpec = 20,
@@ -44,11 +48,21 @@ pub struct Record<'r> {
 /// Content of the underlying Record
 #[derive(Debug)]
 pub enum Content<'r> {
-    /// Record is a handshake
+    /// Record is a Handshake
     Handshake(HandshakeMsg<'r>),
+    /// Record is an Alert
+    Alert(AlertMsg<'r>),
 }
 
 impl<'r> Record<'r> {
+    /// Provide the Conten Type of the Record
+    pub fn content_type(&self) -> ContentType {
+        self.header.content_type
+    }
+    /// Provide the Content of the Record
+    pub fn content(&'r self) -> &'r Content<'r> {
+        &self.content
+    }
     /// Parse incoming byte slices into TLS Record types with the given HelloProcessor.
     pub fn parse_client<P: ClientHelloProcessor>(
         prc: &mut P,
@@ -66,7 +80,11 @@ impl<'r> Record<'r> {
                 let (c, r_next) = HandshakeMsg::client_parse(prc, rest).unwrap();
                 (Content::Handshake(c), r_next)
             }
-            _ => todo!(),
+            ContentType::Alert => {
+                let (c, r_next) = AlertMsg::client_parse(prc, rest).unwrap();
+                (Content::Alert(c), r_next)
+            }
+            _ => todo!("Record {:?} not implemented.", hdr.content_type),
         };
 
         Ok((

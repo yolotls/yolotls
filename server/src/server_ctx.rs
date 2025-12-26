@@ -1,8 +1,15 @@
 //! yTls Server Context
 
+use ytls_record::Content;
+use ytls_record::MsgType;
 use ytls_record::Record;
 
+mod r_server_hello;
 mod s_client_hello;
+
+use ytls_traits::TlsLeft;
+
+use x25519_dalek::{EphemeralSecret, PublicKey, SharedSecret};
 
 use crate::TlsServerCtxConfig;
 use crate::TlsServerCtxError;
@@ -29,6 +36,21 @@ pub struct TlsServerCtx<C> {
     signed_cert_ts: bool,
     /// Sig alg RsaPkcs1Sha256 supported ?
     sig_alg_rsa_pkcs1_sha256_supported: bool,
+    /// Client supplied random
+    client_random: Option<[u8; 32]>,
+    /// Client X25519 pk
+    client_x25519_pk: Option<[u8; 32]>,
+    /// Client Session Id (max 100 bytes)
+    // TODO: handle this better.. this is wasteful - protocol is dumb wasting bytes here.
+    client_session_id: Option<[u8; 100]>,
+    /// Client Session Id len (max 100 bytes)
+    client_session_len: usize,
+    /// Curve25519 Public Key
+    public_key: Option<PublicKey>,
+    /// Shared Secret
+    shared_secret: Option<SharedSecret>,
+    /// Key Share for X25519
+    key_share: [u8; 36],
 }
 
 impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
@@ -45,11 +67,24 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
             record_size_limit: 0,
             signed_cert_ts: false,
             sig_alg_rsa_pkcs1_sha256_supported: false,
+            client_random: None,
+            client_x25519_pk: None,
+            client_session_id: None,
+            client_session_len: 0,
+            public_key: None,
+            shared_secret: None,
+            key_share: [0; 36],
         })
     }
     /// Process incoming TLS Records
-    pub fn process_tls_records(&mut self, data: &[u8]) -> Result<(), TlsServerCtxError> {
-        let rec = Record::parse_client(self, data).map_err(|e| TlsServerCtxError::Record(e))?;
+    pub fn process_tls_records<L: TlsLeft>(
+        &mut self,
+        l: &mut L,
+        data: &[u8],
+    ) -> Result<(), TlsServerCtxError> {
+        let (rec, _remaining) =
+            Record::parse_client(self, data).map_err(|e| TlsServerCtxError::Record(e))?;
+
         println!("Rec = {:?}", rec);
 
         println!("TLS13 Supported = {}", self.tls13_supported);
@@ -71,6 +106,32 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
             self.sig_alg_rsa_pkcs1_sha256_supported
         );
 
-        todo!()
+        if self.shared_secret.is_none() {
+            if let Some(pk) = self.client_x25519_pk {
+                let ephemeral_secret = EphemeralSecret::random();
+                let pub_key: PublicKey = pk.clone().into();
+                self.public_key = Some(pub_key.clone());
+                self.shared_secret = Some(ephemeral_secret.diffie_hellman(&pub_key));
+                self.key_share = self.key_share_x25519();
+                println!("Key Share generated = {}", hex::encode(self.key_share));
+            }
+        }
+
+        match rec.content() {
+            Content::Handshake(content) => {
+                let msg = content.msg();
+                match msg {
+                    MsgType::ClientHello(h) => {
+                        println!("ClientHello = {:?}", h);
+                        self.do_server_hello(l);
+                    }
+                }
+            }
+            Content::Alert(alert) => {
+                println!("Alert = {:?}", alert);
+            }
+        }
+
+        Ok(())
     }
 }

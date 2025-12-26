@@ -81,6 +81,22 @@ impl<C: TlsServerCtxConfig> ClientHelloProcessor for TlsServerCtx<C> {
             self.chacha20_poly1305_sha256_supported = true
         }
     }
+    #[inline]
+    fn handle_client_random(&mut self, cr: &[u8; 32]) -> () {
+        let mut r: [u8; 32] = [0; 32];
+        r.copy_from_slice(cr);
+        self.client_random = Some(r);
+    }
+    #[inline]
+    fn handle_session_id(&mut self, ses_id: &[u8]) -> () {
+        let mut s: [u8; 100] = [0; 100];
+        if ses_id.len() > 100 {
+            return ();
+        }
+        self.client_session_len = ses_id.len();
+        s[0..ses_id.len()].copy_from_slice(ses_id);
+        self.client_session_id = Some(s);
+    }
 }
 
 use ytls_extensions::EntrySniKind;
@@ -119,9 +135,13 @@ impl<C: TlsServerCtxConfig> ExtGroupProcessor for TlsServerCtx<C> {
 
 impl<C: TlsServerCtxConfig> ExtKeyShareProcessor for TlsServerCtx<C> {
     #[inline]
-    fn key_share(&mut self, _g: Group, _d: &[u8]) -> bool {
-        //println!("Client_hello_key_share = g: {:?} d.len {}", g, d.len());
-        // TODO: use with the hybrid kx
+    fn key_share(&mut self, g: Group, d: &[u8]) -> bool {
+        if g == Group::X25519 {
+            let mut pk: [u8; 32] = [0; 32];
+            pk.copy_from_slice(d);
+            self.client_x25519_pk = Some(pk);
+            return true;
+        }
         false
     }
 }

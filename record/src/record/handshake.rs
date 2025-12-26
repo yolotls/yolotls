@@ -52,6 +52,11 @@ pub struct HandshakeMsg<'r> {
 }
 
 impl<'r> HandshakeMsg<'r> {
+    /// The inner Message
+    pub fn msg(&'r self) -> &'r MsgType<'r> {
+        &self.msg
+    }
+    /// Parse Client Record
     pub fn client_parse<P: ClientHelloProcessor>(
         prc: &mut P,
         bytes: &'r [u8],

@@ -51,4 +51,4 @@ impl TlsExtVersion {
 }
 
 // TODO: Test
-// 0403040303 -> Tls13, Tls12
+// 04 03 04 03 03 -> Tls13, Tls12

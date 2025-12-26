@@ -31,11 +31,16 @@ impl<'r> ClientHello<'r> {
         let (hello_hdr, mut rest) = ClientHelloHdr::try_ref_from_prefix(bytes)
             .map_err(|e| RecordError::from_zero_copy(e))?;
 
+        prc.handle_client_random(&hello_hdr.client_random);
+
         let ses_id_len: usize = hello_hdr.ses_id_len.into();
 
         if ses_id_len > 32 {
             return Err(RecordError::ClientHello(ClientHelloError::OverflowSesId));
         }
+
+        let ses_id = &rest[0..ses_id_len];
+        prc.handle_session_id(&ses_id);
 
         rest = &rest[ses_id_len..];
         let lenb: [u8; 2] = [rest[0], rest[1]];

@@ -25,6 +25,9 @@ pub use error::*;
 //
 //-----------------------------------------------
 
+#[doc(inline)]
+pub use ytls_traits::TlsLeft;
+
 mod server_config;
 #[doc(inline)]
 pub use server_config::*;
