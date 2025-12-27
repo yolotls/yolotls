@@ -8,16 +8,24 @@ mod r_server_hello;
 mod s_client_hello;
 
 use ytls_traits::TlsLeft;
+use ytls_traits::CryptoConfig;
 
-use x25519_dalek::{EphemeralSecret, PublicKey, SharedSecret};
+//use x25519_dalek::{EphemeralSecret, PublicKey, SharedSecret};
+use ytls_traits::CryptoX25519Processor;
+
+use rand_core::CryptoRng;
 
 use crate::TlsServerCtxConfig;
 use crate::TlsServerCtxError;
 
 /// State machine context for yTLS Server
-pub struct TlsServerCtx<C> {
+pub struct TlsServerCtx<Config, Crypto, Rng> {
     /// Downstream config implementation
-    config: C,
+    config: Config,
+    /// Downstream crypto implementation
+    crypto: Crypto,
+    /// Downstream rng implementation
+    rng: Rng,
     /// Downstream found host through SNI
     downstream_found_host: bool,
     /// X25519 Group supported
@@ -46,18 +54,20 @@ pub struct TlsServerCtx<C> {
     /// Client Session Id len (max 100 bytes)
     client_session_len: usize,
     /// Curve25519 Public Key
-    public_key: Option<PublicKey>,
+    public_key: Option<[u8; 32]>,
     /// Shared Secret
-    shared_secret: Option<SharedSecret>,
+    shared_secret: Option<[u8; 32]>,
     /// Key Share for X25519
     key_share: [u8; 36],
 }
 
-impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
     /// New yTLS server context with the given configuration
-    pub fn with_config(config: C) -> Result<Self, TlsServerCtxError> {
+    pub fn with_config_and_crypto(config: C, crypto: Crypto, rng: Rng) -> Result<Self, TlsServerCtxError> {
         Ok(Self {
             config,
+            crypto,
+            rng,
             downstream_found_host: false,
             group_x25519_supported: false,
             chacha20_poly1305_sha256_supported: false,
@@ -77,15 +87,17 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
         })
     }
     /// Process incoming TLS Records
-    pub fn process_tls_records<L: TlsLeft>(
+//    pub fn process_tls_records<L: TlsLeft, R: CryptoRng>(
+    pub fn process_tls_records<L: TlsLeft>(        
         &mut self,
         l: &mut L,
+        //rng: &mut R,
         data: &[u8],
     ) -> Result<(), TlsServerCtxError> {
         let (rec, _remaining) =
             Record::parse_client(self, data).map_err(|e| TlsServerCtxError::Record(e))?;
 
-        println!("Rec = {:?}", rec);
+        //println!("Rec = {:?}", rec);
 
         println!("TLS13 Supported = {}", self.tls13_supported);
         println!(
@@ -108,10 +120,13 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
 
         if self.shared_secret.is_none() {
             if let Some(pk) = self.client_x25519_pk {
-                let ephemeral_secret = EphemeralSecret::random();
-                let pub_key: PublicKey = pk.clone().into();
-                self.public_key = Some(pub_key.clone());
-                self.shared_secret = Some(ephemeral_secret.diffie_hellman(&pub_key));
+                //let ephemeral_secret = EphemeralSecret::random();
+                //let pub_key: PublicKey = pk.clone().into();
+                //self.public_key = Some(pub_key.clone());
+                //self.shared_secret = Some(ephemeral_secret.diffie_hellman(&pub_key));
+                let x25519_ctx = self.crypto.x25519_init(&mut self.rng);
+                self.public_key = Some(x25519_ctx.x25519_public_key());
+                self.shared_secret = Some(x25519_ctx.x25519_shared_secret(&pk));
                 self.key_share = self.key_share_x25519();
                 println!("Key Share generated = {}", hex::encode(self.key_share));
             }
@@ -122,8 +137,9 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
                 let msg = content.msg();
                 match msg {
                     MsgType::ClientHello(h) => {
+                        println!("ClientHello rec bytes = {}", hex::encode(rec.as_bytes()));
                         println!("ClientHello = {:?}", h);
-                        self.do_server_hello(l);
+                        self.do_server_hello(l)?;
                     }
                 }
             }

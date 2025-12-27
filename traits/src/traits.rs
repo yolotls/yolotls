@@ -1,11 +1,40 @@
 //! ytls traits
 
+//use ytls_util::ByteSlices;
+
 //----------------------------------------------------------
 // Providers
 //----------------------------------------------------------
 
-pub trait CryptoProcessor {
-    //
+#[doc(inline)]
+pub use rand_core::CryptoRng;
+
+/// Cryptography configuration is provied through implmenting
+/// this trait. Typically providers provide implementation or
+/// implementer can provide a mix of used primitives.
+pub trait CryptoConfig {
+    /// Provide the configured SHA384 Hasher impl
+    fn sha384_init(&mut self) -> impl CryptoSha384TrancriptProcessor;
+    /// Provide the configured Ephemeral X25519 impl
+    fn x25519_init<R: CryptoRng>(&mut self, _: &mut R) -> impl CryptoX25519Processor;
+}
+
+/// X25519 processor used to calculate the shared secret with
+/// the given input public key and returning the shared secret.
+pub trait CryptoX25519Processor {
+    /// Provide the associated public key
+    fn x25519_public_key(&self) -> [u8; 32];
+    /// Typically performns Diffie Hellman with the given public key
+    fn x25519_shared_secret(self, _pub_key: &[u8; 32]) -> [u8; 32];
+}
+
+/// Transcript processor used to hash handshakes.
+/// Typically implemented by the crypto provider.
+pub trait CryptoSha384TrancriptProcessor {
+    /// Update the SHA384 Transcript with the given data
+    fn sha384_update(&mut self, _: &[u8]) -> ();
+    /// Finalize the current SHA384 digest
+    fn sha384_finalize(self) -> [u8; 48];
 }
 
 //----------------------------------------------------------

@@ -1,8 +1,8 @@
 [package]
-name = "ytls-traits"
+name = "ytls-validation-crypto"
 version = "0.0.1"
 edition = "2021"
-description = "yolox TLS traits"
+description = "yolox TLS crypto validation"
 homepage = "https://github.com/yolotls/yolotls"
 keywords = ["io", "uring", "epoll", "async"]
 license = "Apache-2.0/MIT"
@@ -11,14 +11,23 @@ repository = "https://github.com/yolotls/yolotls"
 categories = ["science"]
 
 [dev-dependencies]
+hex = "0.4.3"
+rstest = "0.26"
+hex-literal = "1.1"
+insta = "1.45"
+criterion = "0.8"
 
 [features]
 default = []
 std = []
 
 [dependencies]
-rand_core = { version = "=0.10.0-rc-2", default-features = false }
+ytls-rustcrypto = { path = "../../crypto/rustcrypto" }
+ytls-traits = { path = "../../traits" }
 
 [package.metadata.docs.rs]
 features = []
 
+#[[bench]]
+#name = "bencher"
+#harness = false

@@ -42,6 +42,7 @@ pub struct RecordHeader {
 #[derive(Debug)]
 pub struct Record<'r> {
     header: &'r RecordHeader,
+    raw_bytes: &'r [u8],
     content: Content<'r>,
 }
 
@@ -55,6 +56,10 @@ pub enum Content<'r> {
 }
 
 impl<'r> Record<'r> {
+    /// Provide the raw record in bytes without header
+    pub fn as_bytes(&self) -> &[u8] {
+        self.raw_bytes
+    }
     /// Provide the Conten Type of the Record
     pub fn content_type(&self) -> ContentType {
         self.header.content_type
@@ -75,6 +80,8 @@ impl<'r> Record<'r> {
             return Err(RecordError::OverflowLength);
         }
 
+        let raw_bytes = &rest[0..usize::from(hdr.record_length)];
+        
         let (content, rest_next) = match hdr.content_type {
             ContentType::Handshake => {
                 let (c, r_next) = HandshakeMsg::client_parse(prc, rest).unwrap();
@@ -90,6 +97,7 @@ impl<'r> Record<'r> {
         Ok((
             Self {
                 header: hdr,
+                raw_bytes,
                 content,
             },
             rest_next,
