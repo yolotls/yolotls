@@ -12,12 +12,16 @@ use ytls_traits::CryptoRng;
 use ytls_traits::TlsLeft;
 use ytls_traits::UntypedHandshakeBuilder;
 
+use ytls_traits::CryptoSha256TranscriptProcessor;
+
 impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
     #[inline]
-    pub(crate) fn do_server_hello<L: TlsLeft>(&self, l: &mut L) -> Result<(), TlsServerCtxError> {
+    pub(crate) fn do_server_hello<L: TlsLeft, T: CryptoSha256TranscriptProcessor>(&mut self, l: &mut L, t: &mut T) -> Result<(), TlsServerCtxError> {
         let b = StaticRecordBuilder::<8192>::server_hello_untyped(self)
             .map_err(TlsServerCtxError::Builder)?;
 
+        t.sha256_update(b.without_header_as_bytes());
+        
         l.send_record_out(b.as_encoded_bytes());
         Ok(())
     }

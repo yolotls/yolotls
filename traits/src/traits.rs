@@ -13,10 +13,19 @@ pub use rand_core::CryptoRng;
 /// this trait. Typically providers provide implementation or
 /// implementer can provide a mix of used primitives.
 pub trait CryptoConfig {
+    // Provide the configured Hkdf Sha256 impl
+    //fn hkdf_sha256_init() -> impl CryptoSha256HkdfProcessor;    
+    /// Provide the configured SHA256 Hasher impl
+    fn sha256_init() -> impl CryptoSha256TranscriptProcessor;   
     /// Provide the configured SHA384 Hasher impl
-    fn sha384_init(&mut self) -> impl CryptoSha384TrancriptProcessor;
+    fn sha384_init() -> impl CryptoSha384TranscriptProcessor;
     /// Provide the configured Ephemeral X25519 impl
     fn x25519_init<R: CryptoRng>(&mut self, _: &mut R) -> impl CryptoX25519Processor;
+}
+
+/// Hkdf
+pub trait CryptoSha256HkdfProcessor {
+    
 }
 
 /// X25519 processor used to calculate the shared secret with
@@ -30,7 +39,16 @@ pub trait CryptoX25519Processor {
 
 /// Transcript processor used to hash handshakes.
 /// Typically implemented by the crypto provider.
-pub trait CryptoSha384TrancriptProcessor {
+pub trait CryptoSha256TranscriptProcessor {
+    /// Update the SHA256 Transcript with the given data
+    fn sha256_update(&mut self, _: &[u8]) -> ();
+    /// Finalize the current SHA384 digest
+    fn sha256_finalize(self) -> [u8; 32];
+}
+
+/// Transcript processor used to hash handshakes.
+/// Typically implemented by the crypto provider.
+pub trait CryptoSha384TranscriptProcessor {
     /// Update the SHA384 Transcript with the given data
     fn sha384_update(&mut self, _: &[u8]) -> ();
     /// Finalize the current SHA384 digest
@@ -71,6 +89,8 @@ pub trait UntypedHandshakeBuilder {
     fn server_hello_untyped<S: UntypedServerHelloBuilder>(_: &S) -> Result<Self, Self::Error>
     where
         Self: Sized;
+    /// Provide the raw encoded bytes but without header
+    fn without_header_as_bytes(&self) -> &[u8];
     /// Provide the raw encoded bytes
     fn as_encoded_bytes(&self) -> &[u8];
 }

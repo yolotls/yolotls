@@ -10,8 +10,9 @@ mod s_client_hello;
 use ytls_traits::TlsLeft;
 use ytls_traits::CryptoConfig;
 
-//use x25519_dalek::{EphemeralSecret, PublicKey, SharedSecret};
 use ytls_traits::CryptoX25519Processor;
+use ytls_traits::CryptoSha256TranscriptProcessor;
+use ytls_traits::CryptoSha384TranscriptProcessor;
 
 use rand_core::CryptoRng;
 
@@ -120,10 +121,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
 
         if self.shared_secret.is_none() {
             if let Some(pk) = self.client_x25519_pk {
-                //let ephemeral_secret = EphemeralSecret::random();
-                //let pub_key: PublicKey = pk.clone().into();
-                //self.public_key = Some(pub_key.clone());
-                //self.shared_secret = Some(ephemeral_secret.diffie_hellman(&pub_key));
                 let x25519_ctx = self.crypto.x25519_init(&mut self.rng);
                 self.public_key = Some(x25519_ctx.x25519_public_key());
                 self.shared_secret = Some(x25519_ctx.x25519_shared_secret(&pk));
@@ -137,9 +134,31 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                 let msg = content.msg();
                 match msg {
                     MsgType::ClientHello(h) => {
-                        println!("ClientHello rec bytes = {}", hex::encode(rec.as_bytes()));
+                        let mut transcript = Crypto::sha256_init();
+                        transcript.sha256_update(rec.as_bytes());
                         println!("ClientHello = {:?}", h);
-                        self.do_server_hello(l)?;
+                        self.do_server_hello(l, &mut transcript)?;
+
+                        use hkdf::Hkdf;
+                        use sha2::Sha256;
+
+                        //*****************************************************
+                        //  early_secret = HKDF-Extract(salt: 00, key: 00...)
+                        //-----------------------------------------------------
+                        let ikm = hex!("00000000000000000000000000000000000000000000");
+                        let salt = hex!("00");
+                        let (early_secret, hk) = Hkdf::<Sha256>::extract(Some(&salt[..]), &ikm);
+
+                        //*****************************************************                        
+                        // empty_hash = SHA256("")
+                        // derived_secret = HKDF-Expand-Label(key: early_secret, label: "derived", ctx: empty_hash, len: 48)
+                        //-----------------------------------------------------
+                        let label = ytls_util::HkdfLabel::tls13_early_secret();
+                        let okm: [u8; 32] = [0; 32];
+                        hk.expand(label, &mut okm);
+
+
+                        
                     }
                 }
             }

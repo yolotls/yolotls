@@ -57,10 +57,9 @@ fn handle_client(mut stream: TcpStream) {
         let crypto_cfg = ytls_rustcrypto::RustCrypto;
         let tls_cfg = MyTlsServerCfg {};
         let mut tls_ctx = TlsServerCtx::with_config_and_crypto(tls_cfg, crypto_cfg, rng).unwrap();
-
         
         tls_ctx
-            .process_tls_records(&mut tls_buffers, &buf[0..s])            
+            .process_tls_records(&mut tls_buffers, &buf[0..s])
             .unwrap();
 
         println!("Buffer out len = {}", tls_buffers.out_buf.len());

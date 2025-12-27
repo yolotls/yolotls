@@ -24,7 +24,7 @@ std = []
 [dependencies]
 ytls-traits = { path = "../../traits" }
 x25519-dalek = { version = "=3.0.0-pre.3", default-features = false, features = ["getrandom"] }
-sha3 = { version = "=0.11.0-rc.3", default-features = false }
+sha2 = { version = "=0.11.0-rc.3", default-features = false }
 rand_core = { version = "=0.10.0-rc-2", default-features = false }
 
 [package.metadata.docs.rs]

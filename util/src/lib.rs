@@ -28,3 +28,7 @@ pub use error::*;
 mod byte_slices;
 #[doc(inline)]
 pub use byte_slices::*;
+
+mod hkdf_label;
+#[doc(inline)]
+pub use hkdf_label::*;

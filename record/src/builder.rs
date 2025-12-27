@@ -33,6 +33,11 @@ impl<const N: usize> UntypedHandshakeBuilder for StaticRecordBuilder<N> {
             ),
         })
     }
+    fn without_header_as_bytes(&self) -> &[u8] {
+        match self.rec_buf {
+            RecordBuffer::ServerHello(ref h) => &h.as_without_header_ref(),
+        }
+    }
     fn as_encoded_bytes(&self) -> &[u8] {
         match self.rec_buf {
             RecordBuffer::ServerHello(ref h) => &h.as_ref(),

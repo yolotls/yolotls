@@ -42,12 +42,16 @@ impl RustCrypto {
 }
 
 use ytls_traits::CryptoConfig;
-use ytls_traits::CryptoSha384TrancriptProcessor;
+use ytls_traits::CryptoSha256TranscriptProcessor;
+use ytls_traits::CryptoSha384TranscriptProcessor;
 use ytls_traits::CryptoX25519Processor;
 use rand_core::CryptoRng;
 
 impl CryptoConfig for RustCrypto {
-    fn sha384_init(&mut self) -> impl CryptoSha384TrancriptProcessor {
+    fn sha256_init() -> impl CryptoSha256TranscriptProcessor {
+        Sha256Hasher::sha256_init()
+    }
+    fn sha384_init() -> impl CryptoSha384TranscriptProcessor {
         Sha384Hasher::sha384_init()
     }
     fn x25519_init<R: CryptoRng>(&mut self, rng: &mut R) -> impl CryptoX25519Processor {

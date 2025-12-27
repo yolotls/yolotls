@@ -28,6 +28,8 @@ ytls-record = { path = "../record" }
 ytls-typed = { path = "../typed" }
 rand_core = { version = "=0.10.0-rc-2", default-features = false }
 hex = "0.4.3"
+hkdf = { version = "=0.13.0-rc.3", default-features = false }
+sha2 = { version = "=0.11.0-rc.3", default-features = false }
 
 [package.metadata.docs.rs]
 features = []

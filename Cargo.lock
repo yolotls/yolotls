@@ -273,6 +273,7 @@ checksum = "ea390c940e465846d64775e55e3115d5dc934acb953de6f6e6360bc232fe2bf7"
 dependencies = [
  "block-buffer",
  "crypto-common",
+ "subtle",
 ]
 
 [[package]]
@@ -412,6 +413,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e712f64ec3850b98572bffac52e2c6f282b29fe6c5fa6d42334b30be438d95c1"
 
 [[package]]
+name = "hkdf"
+version = "0.13.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfbb4225acf2b5cc4e12d384672cd6d1f0cb980ff5859ffcf144db25b593a24d"
+dependencies = [
+ "hmac",
+]
+
+[[package]]
+name = "hmac"
+version = "0.13.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1c597ac7d6cc8143e30e83ef70915e7f883b18d8bec2e2b2bce47f5bbb06d57"
+dependencies = [
+ "digest",
+]
+
+[[package]]
 name = "hybrid-array"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -465,15 +484,6 @@ checksum = "464a3709c7f55f1f721e5389aa6ea4e3bc6aba669353300af094b29ffbdde1d8"
 dependencies = [
  "once_cell",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "keccak"
-version = "0.2.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d546793a04a1d3049bd192856f804cfe96356e2cf36b54b4e575155babe9f41"
-dependencies = [
- "cpufeatures",
 ]
 
 [[package]]
@@ -807,13 +817,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "sha3"
+name = "sha2"
 version = "0.11.0-rc.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2103ca0e6f4e9505eae906de5e5883e06fc3b2232fb5d6914890c7bbcb62f478"
+checksum = "19d43dc0354d88b791216bb5c1bfbb60c0814460cc653ae0ebd71f286d0bd927"
 dependencies = [
+ "cfg-if",
+ "cpufeatures",
  "digest",
- "keccak",
 ]
 
 [[package]]
@@ -1168,7 +1179,7 @@ dependencies = [
  "insta",
  "rand_core",
  "rstest",
- "sha3",
+ "sha2",
  "x25519-dalek",
  "ytls-traits",
 ]
@@ -1179,6 +1190,7 @@ version = "0.0.1"
 dependencies = [
  "hex",
  "hex-literal",
+ "hkdf",
  "rand",
  "rand_core",
  "rstest",

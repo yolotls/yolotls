@@ -13,6 +13,9 @@ pub struct BufStaticServerHello<const N: usize> {
 use super::formatter::EncoderU16;
 
 impl<const N: usize> BufStaticServerHello<N> {
+    pub(crate) fn as_without_header_ref(&self) -> &[u8] {
+        &self.bytes_buf[5..self.bytes_len]
+    }
     pub(crate) fn as_ref(&self) -> &[u8] {
         &self.bytes_buf[0..self.bytes_len]
     }
