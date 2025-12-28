@@ -1,6 +1,4 @@
-//! ytls traits
-
-//use ytls_util::ByteSlices;
+//! ytls Crypto traits
 
 //----------------------------------------------------------
 // Providers
@@ -64,63 +62,4 @@ pub trait CryptoSha384TranscriptProcessor {
     fn sha384_update(&mut self, _: &[u8]) -> ();
     /// Finalize the current SHA384 digest
     fn sha384_finalize(self) -> [u8; 48];
-}
-
-//----------------------------------------------------------
-// SendOut is required for I/O layer linkage
-//----------------------------------------------------------
-
-/// TLS State Machine Left (Ciphertext) or "Network" I/O side
-pub trait TlsLeft {
-    /// Send encoded record data out.
-    fn send_record_out(&mut self, data: &[u8]) -> ();
-}
-
-//----------------------------------------------------------
-// Record Parsing
-//----------------------------------------------------------
-
-pub trait ClientHelloProcessor {
-    fn handle_extension(&mut self, _ext_id: u16, _ext_data: &[u8]) -> ();
-    fn handle_cipher_suite(&mut self, _cs: &[u8; 2]) -> ();
-    fn handle_client_random(&mut self, _cr: &[u8; 32]) -> ();
-    fn handle_session_id(&mut self, _ses_id: &[u8]) -> ();
-}
-
-//----------------------------------------------------------
-// Record Building (Untyped)
-//----------------------------------------------------------
-
-/// Non-typed Handshake Builder with raw data inputs.
-/// This is implemented by the [`ytls_record::Record`] where as
-/// the required inputs are through the client/server contextes.
-pub trait UntypedHandshakeBuilder {
-    type Error;
-    /// Build ServerHello with untyped inputs
-    fn server_hello_untyped<S: UntypedServerHelloBuilder>(_: &S) -> Result<Self, Self::Error>
-    where
-        Self: Sized;
-    /// Provide the raw encoded bytes but without header
-    fn without_header_as_bytes(&self) -> &[u8];
-    /// Provide the raw encoded bytes
-    fn as_encoded_bytes(&self) -> &[u8];
-}
-
-/// Use to generate ServerHello with the HandshakeBuilder.
-/// Provide the optional / required data to construct it.
-pub trait UntypedServerHelloBuilder {
-    /// This should return [3, 3] for TLS 1.3
-    fn legacy_version(&self) -> &[u8; 2];
-    /// Generate 32 bytes server random for the Hello
-    fn server_random(&self) -> &[u8; 32];
-    /// In TLS 1.3 provide the ClientHello session id (if any) back
-    fn legacy_session_id(&self) -> &[u8];
-    /// Server selected the cipher suite from client's list.
-    fn selected_cipher_suite(&self) -> &[u8; 2];
-    /// Server selected compression list. This must be None for TLS 1.3.
-    fn selected_legacy_insecure_compression_method(&self) -> Option<u8>;
-    /// Extensions used list
-    fn extensions_list(&self) -> &[u16];
-    /// Given extension relevant encoded data. See [`ytls_extensions`] to encode.
-    fn extension_data(&self, ext: u16) -> &[u8];
 }
