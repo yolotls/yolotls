@@ -24,6 +24,7 @@ std = []
 [dependencies]
 ytls-rustcrypto = { path = "../../crypto/rustcrypto" }
 ytls-traits = { path = "../../traits" }
+rand = { version = "=0.10.0-rc.5", default-features = false, features = ["thread_rng"] }
 
 [package.metadata.docs.rs]
 features = []

@@ -1,8 +1,8 @@
 [package]
-name = "ytls-server"
+name = "ytls-keys"
 version = "0.0.1"
 edition = "2021"
-description = "yolox sans-io TLS server context"
+description = "yolox sans-io TLS keying context"
 homepage = "https://github.com/yolotls/yolotls"
 keywords = ["io", "uring", "epoll", "async"]
 license = "Apache-2.0/MIT"
@@ -22,18 +22,18 @@ default = []
 std = []
 
 [dependencies]
-ytls-extensions = { path = "../extensions" }
+#ytls-extensions = { path = "../extensions" }
 ytls-traits = { path = "../traits" }
-ytls-record = { path = "../record" }
-ytls-typed = { path = "../typed" }
-ytls-util = { path = "../util" }
-rand_core = { version = "=0.10.0-rc-2", default-features = false }
+#ytls-record = { path = "../record" }
+#ytls-typed = { path = "../typed" }
+#ytls-util = { path = "../util" }
+#rand_core = { version = "=0.10.0-rc-2", default-features = false }
 hex = "0.4.3"
-#hkdf = { version = "=0.13.0-rc.3", default-features = false }
+hkdf = { version = "=0.13.0-rc.3", default-features = false }
 #sha2 = { version = "=0.11.0-rc.3", default-features = false }
-chacha20poly1305 = { version = "=0.11.0-rc.1", default-features = false }
-inout = { version = "0.2", default-features = false }
-hybrid-array = { version = "0.4", default-features = false }
+#chacha20poly1305 = { version = "=0.11.0-rc.1", default-features = false }
+#inout = { version = "0.2", default-features = false }
+#hybrid-array = { version = "0.4", default-features = false }
 #hmac = { version = "=0.13.0-rc.2", default-features = false }
 
 [package.metadata.docs.rs]

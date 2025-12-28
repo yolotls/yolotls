@@ -11,18 +11,20 @@ repository = "https://github.com/yolotls/yolotls"
 categories = ["science"]
 
 [dev-dependencies]
-hex = "0.4.3"
+
 rstest = "0.26"
 hex-literal = "1.1"
 insta = "1.45"
 criterion = "0.8"
+hkdf = { version = "=0.13.0-rc.3", default-features = false }
+sha2 = { version = "=0.11.0-rc.3", default-features = false }
 
 [features]
 default = []
 std = []
 
 [dependencies]
-
+hex = "0.4.3"
 [package.metadata.docs.rs]
 features = []
 

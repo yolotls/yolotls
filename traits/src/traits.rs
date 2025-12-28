@@ -13,8 +13,10 @@ pub use rand_core::CryptoRng;
 /// this trait. Typically providers provide implementation or
 /// implementer can provide a mix of used primitives.
 pub trait CryptoConfig {
-    // Provide the configured Hkdf Sha256 impl
-    //fn hkdf_sha256_init() -> impl CryptoSha256HkdfProcessor;    
+    type PrkError;
+    fn hkdf_sha256_from_prk(_prk: &[u8]) -> Result<impl CryptoSha256HkdfGenProcessor, Self::PrkError>;
+    /// Provide the configured Hkdf Sha256 impl
+    fn hkdf_sha256_init() -> impl CryptoSha256HkdfExtractProcessor;
     /// Provide the configured SHA256 Hasher impl
     fn sha256_init() -> impl CryptoSha256TranscriptProcessor;   
     /// Provide the configured SHA384 Hasher impl
@@ -23,9 +25,18 @@ pub trait CryptoConfig {
     fn x25519_init<R: CryptoRng>(&mut self, _: &mut R) -> impl CryptoX25519Processor;
 }
 
-/// Hkdf
-pub trait CryptoSha256HkdfProcessor {
-    
+/// HKDF (Hashing Key Derivation Function) Extract Processor
+pub trait CryptoSha256HkdfExtractProcessor {
+    /// HKDF Using SHA256
+    fn hkdf_sha256_extract(&self, _salt: Option<&[u8]>, _ikm: &[u8]) -> ([u8; 32], impl CryptoSha256HkdfGenProcessor);
+}
+
+/// HKDF Gen Processor, e.g. to Expand
+pub trait CryptoSha256HkdfGenProcessor {
+    /// Associated error
+    type Error;
+    /// HKDF Using SHA256.
+    fn hkdf_sha256_expand(&self, _info: &[u8], _okm: &mut [u8]) -> Result<(), Self::Error>;
 }
 
 /// X25519 processor used to calculate the shared secret with

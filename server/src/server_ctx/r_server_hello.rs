@@ -20,6 +20,8 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
         let b = StaticRecordBuilder::<8192>::server_hello_untyped(self)
             .map_err(TlsServerCtxError::Builder)?;
 
+        //println!("ServerHello/w<{}> = {}", b.as_encoded_bytes().len(), hex::encode(b.as_encoded_bytes()));
+        //println!("ServerHello/p<{}> = {}", b.without_header_as_bytes().len(), hex::encode(b.without_header_as_bytes()));
         t.sha256_update(b.without_header_as_bytes());
         
         l.send_record_out(b.as_encoded_bytes());

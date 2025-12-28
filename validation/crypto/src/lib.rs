@@ -29,3 +29,13 @@ pub use error::*;
 mod hasher;
 #[cfg(test)]
 pub use hasher::*;
+
+#[cfg(test)]
+mod x25519;
+#[cfg(test)]
+pub use x25519::*;
+
+#[cfg(test)]
+mod hkdf;
+#[cfg(test)]
+pub use hkdf::*;

@@ -49,6 +49,8 @@ pub struct Record<'r> {
 /// Content of the underlying Record
 #[derive(Debug)]
 pub enum Content<'r> {
+    /// Record is ApplicationData
+    ApplicationData,
     /// Record is a Handshake
     Handshake(HandshakeMsg<'r>),
     /// Record is an Alert
@@ -91,6 +93,10 @@ impl<'r> Record<'r> {
                 let (c, r_next) = AlertMsg::client_parse(prc, rest).unwrap();
                 (Content::Alert(c), r_next)
             }
+            ContentType::ApplicationData => {
+                let r_next = &rest[usize::from(hdr.record_length)..];
+                (Content::ApplicationData, r_next)
+            },
             _ => todo!("Record {:?} not implemented.", hdr.content_type),
         };
 
