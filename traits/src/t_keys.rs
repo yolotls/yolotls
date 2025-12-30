@@ -24,7 +24,11 @@ pub trait Tls13KeyScheduleDerivedSha256 {
     ///
     /// If the Input hash is incompatible with the initially provided hash
     /// this will return None.
-    fn dh_x25519(self, _shared_secret: &[u8; 32], _input_hash: &[u8; 32]) -> impl Tls13KeyScheduleHandshakeSha256;
+    fn dh_x25519(
+        self,
+        _shared_secret: &[u8; 32],
+        _input_hash: &[u8; 32],
+    ) -> impl Tls13KeyScheduleHandshakeSha256;
 }
 
 /// TLS1.3 "handshake" Key Schedule

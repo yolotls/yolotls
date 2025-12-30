@@ -214,7 +214,7 @@ mod test_sha256_rfc8448 {
             &client_handshake_key,
             &hex!("db fa a6 93 d1 76 2c 5b 66 6a f5 d9 50 25 8d 01")
         );
-    }    
+    }
 
     #[test]
     fn handshake_server_iv_ok() {
@@ -238,6 +238,5 @@ mod test_sha256_rfc8448 {
             &client_handshake_iv,
             &hex!("5b d3 c7 1b 83 6e 0b 76 bb 73 26 5f")
         );
-    }    
-
+    }
 }

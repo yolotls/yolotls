@@ -1250,6 +1250,7 @@ dependencies = [
 name = "ytls-rustcrypto"
 version = "0.0.1"
 dependencies = [
+ "chacha20poly1305",
  "criterion",
  "hex",
  "hex-literal",
@@ -1266,7 +1267,6 @@ dependencies = [
 name = "ytls-server"
 version = "0.0.1"
 dependencies = [
- "chacha20poly1305",
  "hex",
  "hex-literal",
  "rand",

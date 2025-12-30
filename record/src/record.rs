@@ -83,7 +83,7 @@ impl<'r> Record<'r> {
         }
 
         let raw_bytes = &rest[0..usize::from(hdr.record_length)];
-        
+
         let (content, rest_next) = match hdr.content_type {
             ContentType::Handshake => {
                 let (c, r_next) = HandshakeMsg::client_parse(prc, rest).unwrap();
@@ -96,7 +96,7 @@ impl<'r> Record<'r> {
             ContentType::ApplicationData => {
                 let r_next = &rest[usize::from(hdr.record_length)..];
                 (Content::ApplicationData, r_next)
-            },
+            }
             _ => todo!("Record {:?} not implemented.", hdr.content_type),
         };
 

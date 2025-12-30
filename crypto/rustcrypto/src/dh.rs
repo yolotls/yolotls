@@ -1,8 +1,8 @@
 //! yTLS RustCrypto Hashers
 
-use ytls_traits::CryptoX25519Processor;
 use x25519_dalek::EphemeralSecret;
 use x25519_dalek::PublicKey;
+use ytls_traits::CryptoX25519Processor;
 
 use rand_core::CryptoRng;
 

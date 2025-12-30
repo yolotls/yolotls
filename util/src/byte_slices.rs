@@ -88,7 +88,7 @@ mod test {
         let mut i = bs.iter();
         assert_eq!(i.next(), Some(x.as_ref()));
         assert_eq!(i.next(), None);
-    }    
+    }
 
     #[test]
     fn double() {
@@ -108,13 +108,13 @@ mod test {
         assert_eq!(i.next(), Some(x.as_ref()));
         assert_eq!(i.next(), Some(y.as_ref()));
         assert_eq!(i.next(), None);
-    }    
+    }
 
     #[test]
     fn triple() {
         let x: [u8; 2] = [42, 69];
         let y: [u8; 2] = [70, 71];
-        let z: [u8; 2] = [72, 73];        
+        let z: [u8; 2] = [72, 73];
         let bs = ByteSlices::Triple(&x, &y, &z);
         assert_eq!(bs.len(), 3);
         assert_eq!(bs.total_len(), 6);
@@ -124,7 +124,7 @@ mod test {
     fn triple_iter() {
         let x: [u8; 2] = [42, 69];
         let y: [u8; 2] = [70, 71];
-        let z: [u8; 2] = [72, 73];        
+        let z: [u8; 2] = [72, 73];
         let bs = ByteSlices::Triple(&x, &y, &z);
         let mut i = bs.iter();
 
@@ -132,6 +132,5 @@ mod test {
         assert_eq!(i.next(), Some(y.as_ref()));
         assert_eq!(i.next(), Some(z.as_ref()));
         assert_eq!(i.next(), None);
-    }        
-    
+    }
 }

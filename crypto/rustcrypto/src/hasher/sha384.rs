@@ -1,7 +1,7 @@
 //! yTLS RustCrypto Hashers
 
-use ytls_traits::CryptoSha384TranscriptProcessor;
 use sha2::{Digest, Sha384};
+use ytls_traits::CryptoSha384TranscriptProcessor;
 
 /// RustCrypto Sha384Hasher
 pub struct Sha384Hasher {
@@ -18,7 +18,7 @@ impl Sha384Hasher {
 impl CryptoSha384TranscriptProcessor for Sha384Hasher {
     fn sha384_update(&mut self, d: &[u8]) -> () {
         self.hasher.update(d);
-    }    
+    }
     fn sha384_finalize(self) -> [u8; 48] {
         self.hasher.finalize().into()
     }
