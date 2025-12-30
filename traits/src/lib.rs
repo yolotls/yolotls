@@ -25,17 +25,21 @@ pub use error::*;
 //
 //-----------------------------------------------
 
-mod t_io;
+mod t_builder;
 #[doc(inline)]
-pub use t_io::*;
+pub use t_builder::*;
 
 mod t_crypto;
 #[doc(inline)]
 pub use t_crypto::*;
 
-mod t_builder;
+mod t_io;
 #[doc(inline)]
-pub use t_builder::*;
+pub use t_io::*;
+
+mod t_keys;
+#[doc(inline)]
+pub use t_keys::*;
 
 mod t_parser;
 #[doc(inline)]

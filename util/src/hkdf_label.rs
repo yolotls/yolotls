@@ -26,7 +26,7 @@ impl HkdfLabelSha256 {
     }
     /// Early secret has empty SHA256 ctx given no PSK
     #[inline]
-    pub fn tls13_early_secret() -> [u8; 49] {
+    pub fn tls13_early_secret_sha256() -> [u8; 49] {
         //b"tls13 derived" + e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
         let r: [u8; 49] = [
             // Hashlen u16
@@ -50,16 +50,16 @@ impl HkdfLabelSha256 {
         r
     }
     #[inline]
-    pub fn tls13_server_secret_key(key_len: u8) -> [u8; 13] {
+    pub fn tls13_secret_key(key_len: u8) -> [u8; 13] {
         //b"tls13 key"
         let r: [u8; 13] = [0, key_len, 9, 116, 108, 115, 49, 51, 32, 107, 101, 121, 0];
         assert_eq!(&r[3..12], b"tls13 key");
         r
     }
     #[inline]
-    pub fn tls13_server_secret_iv() -> [u8; 12] {
+    pub fn tls13_secret_iv(iv_len: u8) -> [u8; 12] {
         //b"tls13 iv"
-        let r: [u8; 12] = [0, 12, 8, 116, 108, 115, 49, 51, 32, 105, 118, 00];
+        let r: [u8; 12] = [0, iv_len, 8, 116, 108, 115, 49, 51, 32, 105, 118, 00];
         assert_eq!(&r[3..11], b"tls13 iv");
         r
     }    
@@ -145,7 +145,7 @@ mod test_rfc8448 {
         // empty_hash = SHA256("")
         // derived_secret = HKDF-Expand-Label(key: early_secret, label: "derived", ctx: empty_hash, len: 32)
         //-----------------------------------------------------
-        let label_derived = HkdfLabelSha256::tls13_early_secret();
+        let label_derived = HkdfLabelSha256::tls13_early_secret_sha256();
         assert_eq!(label_derived, hex!("00 20 0d 74 6c 73 31 33 20 64 65 72 69 76 65 64
          20 e3 b0 c4 42 98 fc 1c 14 9a fb f4 c8 99 6f b9 24 27 ae 41 e4
          64 9b 93 4c a4 95 99 1b 78 52 b8 55"));
@@ -224,7 +224,7 @@ mod test_rfc8448 {
 
         let hk = Hkdf::<Sha256>::from_prk(&server_secret).expect("PRK should be large enough");
         let mut server_handshake_key: [u8; 16] = [0; 16];
-        let key_label = HkdfLabelSha256::tls13_server_secret_key(16);
+        let key_label = HkdfLabelSha256::tls13_secret_key(16);
         assert_eq!(&key_label, &hex!("00 10 09 74 6c 73 31 33 20 6b 65 79 00"));
         hk.expand(&key_label, &mut server_handshake_key);
         assert_eq!(&server_handshake_key, &hex!("3f ce 51 60 09 c2 17 27 d0 f2 e4 e8 6e e4 03 bc"));
@@ -236,7 +236,7 @@ mod test_rfc8448 {
 
         let hk = Hkdf::<Sha256>::from_prk(&server_secret).expect("PRK should be large enough");
         let mut server_handshake_iv: [u8; 12] = [0; 12];
-        let iv_label = HkdfLabelSha256::tls13_server_secret_iv();
+        let iv_label = HkdfLabelSha256::tls13_secret_iv();
         assert_eq!(&iv_label, &hex!("00 0c 08 74 6c 73 31 33 20 69 76 00"));
         hk.expand(&iv_label, &mut server_handshake_iv);
         assert_eq!(&server_handshake_iv, &hex!("5d 31 3e b2 67 12 76 ee 13 00 0b 30"));

@@ -39,6 +39,7 @@ pub use hkdf::*;
 
 /// Use this together with yTLS by providing this struct into the
 /// client or server contextes.
+#[derive(Copy, Clone)]
 pub struct RustCrypto;
 
 impl RustCrypto {

@@ -172,9 +172,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         self.do_server_hello(l, &mut transcript)?;
                         let hello_hash = transcript.sha256_finalize();                        
 
-                        //use hkdf::Hkdf;
-                        //use sha2::Sha256;
-
                         let hkdf = Crypto::hkdf_sha256_init();
                         
                         //*****************************************************
@@ -184,7 +181,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         let salt: [u8; 1] = [0; 1];
 
                         let (early_secret, hk_early) = hkdf.hkdf_sha256_extract(Some(&salt[..]), &ikm);
-                        //let (early_secret, hk_early) = Hkdf::<Sha256>::extract(Some(&salt[..]), &ikm);
                         println!("early_secret = {}", hex::encode(early_secret));
                         
                         //*****************************************************                        
@@ -194,7 +190,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         let label_derived = ytls_util::HkdfLabelSha256::tls13_early_secret();
                         let mut derived_secret: [u8; 32] = [0; 32];
                         hk_early.hkdf_sha256_expand(&label_derived, &mut derived_secret);
-                        //hk_early.expand(&label_derived, &mut derived_secret).unwrap();                        
 
                         //*****************************************************
                         // handshake_secret = HKDF-Extract(salt: derived_secret, key: shared_secret)
@@ -202,17 +197,14 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         // server_secret = HKDF-Expand-Label(key: handshake_secret, label: "s hs traffic", ctx: hello_hash, len: 48)
                         //-----------------------------------------------------
                         let (handshake_secret, mut hs_hk) = hkdf.hkdf_sha256_extract(Some(&derived_secret), &shared_secret);
-                        //let (handshake_secret, hs_hk) = Hkdf::<Sha256>::extract(Some(&derived_secret), &shared_secret);
 
                         let label = ytls_util::HkdfLabelSha256::tls13_client_handshake_traffic(&hello_hash);
                         let mut client_secret: [u8; 32] = [0; 32];
                         hs_hk.hkdf_sha256_expand(&label, &mut client_secret);
-                        //hs_hk.expand(&label, &mut client_secret).unwrap();
                         
                         let label = ytls_util::HkdfLabelSha256::tls13_server_handshake_traffic(&hello_hash);
                         let mut server_secret: [u8; 32] = [0; 32];
                         hs_hk.hkdf_sha256_expand(&label, &mut server_secret);
-                        //hs_hk.expand(&label, &mut server_secret).unwrap();                        
 
                         /*
                         println!("Client Hello random = {}", hex::encode(self.client_random.unwrap()));
