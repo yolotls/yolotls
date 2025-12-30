@@ -3,13 +3,13 @@
 //! The trait is split in order to provide typed triggers to clean
 /// up old secrets when not needed anymore beyond their purpose.
 
-use crate::CryptoConfig;
+//use crate::CryptoConfig;
 
 /// Initialize TLS1.3 Key Schedule
 pub trait Tls13KeyScheduleInit {
     /// Init TLS1.3 Key Schedule with the given cryptography that includes Hkdf<Sha256> processor.
     /// Select this if your AEAD cipher has _SHA256 suffix and no PSK
-    fn no_psk_with_crypto_and_sha256<Crypto: CryptoConfig>(c: Crypto) -> impl Tls13KeyScheduleDerivedSha256;
+    fn no_psk_with_crypto_and_sha256() -> impl Tls13KeyScheduleDerivedSha256;
 }
 
 /// TLS1.3 "derived" Key Schedule

@@ -16,6 +16,11 @@ use ytls_traits::CryptoSha384TranscriptProcessor;
 use ytls_traits::CryptoSha256HkdfExtractProcessor;
 use ytls_traits::CryptoSha256HkdfGenProcessor;
 
+use ytls_keys::Tls13Keys;
+use ytls_traits::Tls13KeyScheduleInit;
+use ytls_traits::Tls13KeyScheduleDerivedSha256;
+use ytls_traits::Tls13KeyScheduleHandshakeSha256;
+
 use rand_core::CryptoRng;
 
 use crate::TlsServerCtxConfig;
@@ -170,32 +175,32 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         transcript.sha256_update(rec.as_bytes());
                         println!("ClientHello = {:?}", h);
                         self.do_server_hello(l, &mut transcript)?;
-                        let hello_hash = transcript.sha256_finalize();                        
+                        let hello_hash = transcript.sha256_finalize();
 
+                        /*
+                        println!("Client Hello random = {}", hex::encode(self.client_random.unwrap()));
+                        println!("Hello hash = {}", hex::encode(hello_hash));
+                        println!("Public key = {}", hex::encode(self.public_key.unwrap()));
+                        println!("Derived secret = {}", hex::encode(derived_secret));
+                        println!("Shared secret = {}", hex::encode(shared_secret));
+                        println!("Client secret = {}", hex::encode(client_secret));
+                        */
+
+                        
+
+                        /*
                         let hkdf = Crypto::hkdf_sha256_init();
                         
-                        //*****************************************************
-                        //  early_secret = HKDF-Extract(salt: 00, key: 00...)
-                        //-----------------------------------------------------
                         let ikm: [u8; 32] = [0; 32];
                         let salt: [u8; 1] = [0; 1];
 
                         let (early_secret, hk_early) = hkdf.hkdf_sha256_extract(Some(&salt[..]), &ikm);
                         println!("early_secret = {}", hex::encode(early_secret));
                         
-                        //*****************************************************                        
-                        // empty_hash = SHA256("")
-                        // derived_secret = HKDF-Expand-Label(key: early_secret, label: "derived", ctx: empty_hash, len: 48)
-                        //-----------------------------------------------------
                         let label_derived = ytls_util::HkdfLabelSha256::tls13_early_secret();
                         let mut derived_secret: [u8; 32] = [0; 32];
                         hk_early.hkdf_sha256_expand(&label_derived, &mut derived_secret);
 
-                        //*****************************************************
-                        // handshake_secret = HKDF-Extract(salt: derived_secret, key: shared_secret)
-                        // client_secret = HKDF-Expand-Label(key: handshake_secret, label: "c hs traffic", ctx: hello_hash, len: 48)
-                        // server_secret = HKDF-Expand-Label(key: handshake_secret, label: "s hs traffic", ctx: hello_hash, len: 48)
-                        //-----------------------------------------------------
                         let (handshake_secret, mut hs_hk) = hkdf.hkdf_sha256_extract(Some(&derived_secret), &shared_secret);
 
                         let label = ytls_util::HkdfLabelSha256::tls13_client_handshake_traffic(&hello_hash);
@@ -206,14 +211,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         let mut server_secret: [u8; 32] = [0; 32];
                         hs_hk.hkdf_sha256_expand(&label, &mut server_secret);
 
-                        /*
-                        println!("Client Hello random = {}", hex::encode(self.client_random.unwrap()));
-                        println!("Hello hash = {}", hex::encode(hello_hash));
-                        println!("Public key = {}", hex::encode(self.public_key.unwrap()));
-                        println!("Derived secret = {}", hex::encode(derived_secret));
-                        println!("Shared secret = {}", hex::encode(shared_secret));
-                        println!("Client secret = {}", hex::encode(client_secret));
-                        */
                         println!("Server secret = {}", hex::encode(server_secret));
                         
                         // server_handshake_key = HKDF-Expand-Label(key: server_secret, label: "key", ctx: "", len: 32)
@@ -226,23 +223,32 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                             Ok(hk_key) => hk_key,
                             Err(_) => panic!("hk_key"),
                         };
-                        //let hk_key = Hkdf::<Sha256>::from_prk(&server_secret).expect("PRK should be large enough");
                         hk_key.hkdf_sha256_expand(&key_label, &mut server_handshake_key);
-                        //hk_key.expand(&key_label, &mut server_handshake_key).unwrap();
 
                         let mut hk_iv = match Crypto::hkdf_sha256_from_prk(&server_secret) {
                             Ok(hk_iv) => hk_iv,
                             Err(_) => panic!("hk_iv"),
                         };
-                        //let hk_iv = Hkdf::<Sha256>::from_prk(&server_secret).expect("PRK should be large enough");
                         hk_iv.hkdf_sha256_expand(&iv_label, &mut server_handshake_iv);
-                        //hk_iv.expand(&iv_label, &mut server_handshake_iv).unwrap();
 
                         println!("*** Setting handshake secret key = {}", hex::encode(server_handshake_key));
                         println!("*** Setting handshake secret iv = {}", hex::encode(server_handshake_iv));
+
+
+                         */
+
+                        let k = Tls13Keys::<Crypto>::no_psk_with_crypto_and_sha256();
+                        let hs_k = k.dh_x25519(&shared_secret, &hello_hash);
+                        let mut server_handshake_iv: [u8; 12] = [0; 12];
+                        let mut server_handshake_key: [u8; 32] = [0; 32];
+                        hs_k.handshake_server_iv(&mut server_handshake_iv);
+                        hs_k.handshake_server_key(&mut server_handshake_key);
+                        
+                        
                         self.handshake_secret_key = Some(server_handshake_key);
                         self.handshake_secret_iv = Some(server_handshake_iv);
                         
+
                         use chacha20poly1305::{
                             aead::{AeadCore, AeadInOut, KeyInit},
                             ChaCha20Poly1305, Nonce
@@ -251,7 +257,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         let key: [u8; 32] = server_handshake_key;
                         let cipher = ChaCha20Poly1305::new(&key.into());
 
-                        use inout::InOutBuf;
+                        //use inout::InOutBuf;
 
                         let mut app_data: [u8; 28] = [
                             // 5 bytes header (cleartext)

@@ -23,6 +23,7 @@ std = []
 
 [dependencies]
 ytls-extensions = { path = "../extensions" }
+ytls-keys = { path = "../keys" }
 ytls-traits = { path = "../traits" }
 ytls-record = { path = "../record" }
 ytls-typed = { path = "../typed" }

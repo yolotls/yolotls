@@ -1273,6 +1273,7 @@ dependencies = [
  "rand_core",
  "rstest",
  "ytls-extensions",
+ "ytls-keys",
  "ytls-record",
  "ytls-rustcrypto",
  "ytls-traits",
