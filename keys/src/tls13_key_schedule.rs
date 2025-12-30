@@ -16,18 +16,20 @@ use ytls_traits::CryptoSha256HkdfGenProcessor;
 
 use ytls_util::HkdfLabelSha256;
 
+use core::marker::PhantomData;
+
 /// TLS 1.3 Key Schedule implemented in type state.
 /// See the trait [`Tls13KeyScheduleInit`] for more.
-pub struct Tls13Keys;
+pub struct Tls13Keys<C> {
+    _c: PhantomData<C>,
+}
 
-impl Tls13KeyScheduleInit for Tls13Keys {
-    fn no_psk_with_crypto_and_sha256<Crypto: CryptoConfig>(
-        crypto: Crypto,
-    ) -> impl Tls13KeyScheduleDerivedSha256 {
+impl<C: CryptoConfig> Tls13KeyScheduleInit for Tls13Keys<C> {
+    fn no_psk_with_crypto_and_sha256() -> impl Tls13KeyScheduleDerivedSha256 {
         let ikm: [u8; 32] = [0; 32];
         let salt: [u8; 1] = [0; 1];
 
-        let hkdf = Crypto::hkdf_sha256_init();
+        let hkdf = C::hkdf_sha256_init();
 
         //*****************************************************
         //  early_secret = HKDF-Extract(salt: 00, key: 00...)
@@ -40,9 +42,9 @@ impl Tls13KeyScheduleInit for Tls13Keys {
         // derived_secret = HKDF-Expand-Label(key: early_secret, label: "derived", ctx: empty_hash, len: 32)
         //----------------------------------------------------
         let _ = hk_early.hkdf_sha256_expand(&label_derived, &mut derived_secret);
-        Tls13KeysDerivedSha256 {
-            crypto,
+        Tls13KeysDerivedSha256::<C> {
             derived_secret,
+            _c: PhantomData,
         }
     }
 }
@@ -50,8 +52,8 @@ impl Tls13KeyScheduleInit for Tls13Keys {
 /// Key Schedule in early secret derived state which can proceed to handshake.
 #[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Tls13KeysDerivedSha256<C> {
-    crypto: C,
     derived_secret: [u8; 32],
+    _c: PhantomData<C>,
 }
 
 impl<C: CryptoConfig> Tls13KeyScheduleDerivedSha256 for Tls13KeysDerivedSha256<C> {
@@ -80,10 +82,10 @@ impl<C: CryptoConfig> Tls13KeyScheduleDerivedSha256 for Tls13KeysDerivedSha256<C
         let label = HkdfLabelSha256::tls13_server_handshake_traffic(&hellos_hash);
         let _ = hs_hk.hkdf_sha256_expand(&label, &mut server_secret);
 
-        Tls13KeysHandshakeSha256 {
-            crypto: self.crypto,
+        Tls13KeysHandshakeSha256::<C> {
             client_secret,
             server_secret,
+            _c: PhantomData,
         }
     }
 }
@@ -91,9 +93,9 @@ impl<C: CryptoConfig> Tls13KeyScheduleDerivedSha256 for Tls13KeysDerivedSha256<C
 /// Key Schedule in handshake secret derived state which can proceed to application secret once finished.
 #[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Tls13KeysHandshakeSha256<C> {
-    crypto: C,
     client_secret: [u8; 32],
     server_secret: [u8; 32],
+    _c: PhantomData<C>,
 }
 
 impl<C: CryptoConfig> Tls13KeysHandshakeSha256<C> {
@@ -140,9 +142,9 @@ impl<C: CryptoConfig> Tls13KeyScheduleHandshakeSha256 for Tls13KeysHandshakeSha2
     fn finished_handshake(self, _handshakes_hash: &[u8; 32]) -> impl Tls13KeyScheduleApSha256 {
         let _main_secret: [u8; 32] = [0; 32];
         todo!();
-        Tls13KeysApSha256 {
-            crypto: self.crypto,
+        Tls13KeysApSha256::<C> {
             main_secret: _main_secret,
+            _c: PhantomData,
         }
     }
 }
@@ -150,8 +152,8 @@ impl<C: CryptoConfig> Tls13KeyScheduleHandshakeSha256 for Tls13KeysHandshakeSha2
 /// Key Schedule in final main secret derived state from which application keys and ivs can be derived.
 #[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Tls13KeysApSha256<C> {
-    crypto: C,
     main_secret: [u8; 32],
+    _c: PhantomData<C>,
 }
 
 impl<C: CryptoConfig> Tls13KeyScheduleApSha256 for Tls13KeysApSha256<C> {
@@ -192,8 +194,7 @@ mod test_sha256_rfc8448 {
 
     #[test]
     fn handshake_server_key_ok() {
-        let c = RustCrypto;
-        let k = Tls13Keys::no_psk_with_crypto_and_sha256(c);
+        let k = Tls13Keys::<RustCrypto>::no_psk_with_crypto_and_sha256();
         let hs_k = k.dh_x25519(shared_secret(), handshake_hash());
         let mut server_handshake_key: [u8; 16] = [0; 16];
         hs_k.handshake_server_key(&mut server_handshake_key);
@@ -204,9 +205,20 @@ mod test_sha256_rfc8448 {
     }
 
     #[test]
+    fn handshake_client_key_ok() {
+        let k = Tls13Keys::<RustCrypto>::no_psk_with_crypto_and_sha256();
+        let hs_k = k.dh_x25519(shared_secret(), handshake_hash());
+        let mut client_handshake_key: [u8; 16] = [0; 16];
+        hs_k.handshake_client_key(&mut client_handshake_key);
+        assert_eq!(
+            &client_handshake_key,
+            &hex!("db fa a6 93 d1 76 2c 5b 66 6a f5 d9 50 25 8d 01")
+        );
+    }    
+
+    #[test]
     fn handshake_server_iv_ok() {
-        let c = RustCrypto;
-        let k = Tls13Keys::no_psk_with_crypto_and_sha256(c);
+        let k = Tls13Keys::<RustCrypto>::no_psk_with_crypto_and_sha256();
         let hs_k = k.dh_x25519(shared_secret(), handshake_hash());
         let mut server_handshake_iv: [u8; 12] = [0; 12];
         hs_k.handshake_server_iv(&mut server_handshake_iv);
@@ -215,4 +227,17 @@ mod test_sha256_rfc8448 {
             &hex!("5d 31 3e b2 67 12 76 ee 13 00 0b 30")
         );
     }
+
+    #[test]
+    fn handshake_client_iv_ok() {
+        let k = Tls13Keys::<RustCrypto>::no_psk_with_crypto_and_sha256();
+        let hs_k = k.dh_x25519(shared_secret(), handshake_hash());
+        let mut client_handshake_iv: [u8; 12] = [0; 12];
+        hs_k.handshake_client_iv(&mut client_handshake_iv);
+        assert_eq!(
+            &client_handshake_iv,
+            &hex!("5b d3 c7 1b 83 6e 0b 76 bb 73 26 5f")
+        );
+    }    
+
 }
