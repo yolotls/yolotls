@@ -5,16 +5,28 @@ use crate::TlsServerCtxConfig;
 
 use crate::TlsServerCtxError;
 use ytls_record::StaticRecordBuilder;
+use ytls_traits::CryptoConfig;
+use ytls_traits::CryptoRng;
 use ytls_traits::UntypedServerHelloBuilder;
 
 use ytls_traits::TlsLeft;
 use ytls_traits::UntypedHandshakeBuilder;
 
-impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
+use ytls_traits::CryptoSha256TranscriptProcessor;
+
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
     #[inline]
-    pub(crate) fn do_server_hello<L: TlsLeft>(&self, l: &mut L) -> Result<(), TlsServerCtxError> {
+    pub(crate) fn do_server_hello<L: TlsLeft, T: CryptoSha256TranscriptProcessor>(
+        &mut self,
+        l: &mut L,
+        t: &mut T,
+    ) -> Result<(), TlsServerCtxError> {
         let b = StaticRecordBuilder::<8192>::server_hello_untyped(self)
             .map_err(TlsServerCtxError::Builder)?;
+
+        //println!("ServerHello/w<{}> = {}", b.as_encoded_bytes().len(), hex::encode(b.as_encoded_bytes()));
+        //println!("ServerHello/p<{}> = {}", b.without_header_as_bytes().len(), hex::encode(b.without_header_as_bytes()));
+        t.sha256_update(b.without_header_as_bytes());
 
         l.send_record_out(b.as_encoded_bytes());
         Ok(())
@@ -25,7 +37,7 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
         r[0..4].copy_from_slice(&[0x00, 0x1d, 0x00, 0x20]);
         match &self.public_key {
             Some(ref s) => {
-                r[4..36].copy_from_slice(s.as_bytes());
+                r[4..36].copy_from_slice(s);
             }
             None => {}
         }
@@ -33,7 +45,9 @@ impl<C: TlsServerCtxConfig> TlsServerCtx<C> {
     }
 }
 
-impl<C: TlsServerCtxConfig> UntypedServerHelloBuilder for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> UntypedServerHelloBuilder
+    for TlsServerCtx<C, Crypto, Rng>
+{
     fn legacy_version(&self) -> &[u8; 2] {
         &[3, 3]
     }

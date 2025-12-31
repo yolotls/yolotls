@@ -8,4 +8,6 @@ use ytls_record::RecordError;
 pub enum TlsServerCtxError {
     Record(RecordError),
     Builder(BuilderError),
+    Bug(&'static str),
+    UnexpectedAppData,
 }

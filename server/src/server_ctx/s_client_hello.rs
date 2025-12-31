@@ -3,6 +3,8 @@
 use super::TlsServerCtx;
 use crate::TlsServerCtxConfig;
 use ytls_traits::ClientHelloProcessor;
+use ytls_traits::CryptoConfig;
+use ytls_traits::CryptoRng;
 
 use ytls_extensions::{ExtAlpnProcessor, TlsExtAlpn};
 use ytls_extensions::{ExtCompressCertProcessor, TlsExtCompressCert};
@@ -17,7 +19,9 @@ use ytls_extensions::{ExtSniProcessor, TlsExtSni};
 use ytls_extensions::{ExtVersionProcessor, TlsExtVersion};
 use ytls_typed::{TlsCipherSuite, TlsExtension};
 
-impl<C: TlsServerCtxConfig> ClientHelloProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ClientHelloProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn handle_extension(&mut self, ext_id: u16, ext_data: &[u8]) -> () {
         let ext_t: TlsExtension = ext_id.try_into().unwrap();
@@ -101,7 +105,9 @@ impl<C: TlsServerCtxConfig> ClientHelloProcessor for TlsServerCtx<C> {
 
 use ytls_extensions::EntrySniKind;
 
-impl<C: TlsServerCtxConfig> ExtSniProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtSniProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn sni(&mut self, k: EntrySniKind, name: &[u8]) -> bool {
         if k != EntrySniKind::DnsHostname {
@@ -122,7 +128,9 @@ impl<C: TlsServerCtxConfig> ExtSniProcessor for TlsServerCtx<C> {
 
 use ytls_typed::Group;
 
-impl<C: TlsServerCtxConfig> ExtGroupProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtGroupProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn group(&mut self, group: Group) -> bool {
         if group == Group::X25519 {
@@ -133,7 +141,9 @@ impl<C: TlsServerCtxConfig> ExtGroupProcessor for TlsServerCtx<C> {
     }
 }
 
-impl<C: TlsServerCtxConfig> ExtKeyShareProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtKeyShareProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn key_share(&mut self, g: Group, d: &[u8]) -> bool {
         if g == Group::X25519 {
@@ -148,7 +158,9 @@ impl<C: TlsServerCtxConfig> ExtKeyShareProcessor for TlsServerCtx<C> {
 
 use ytls_typed::SignatureAlgorithm;
 
-impl<C: TlsServerCtxConfig> ExtSigAlgProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtSigAlgProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn signature_algorithm(&mut self, s_alg: SignatureAlgorithm) -> bool {
         //println!("s_alg = {:?}", s_alg);
@@ -166,7 +178,9 @@ impl<C: TlsServerCtxConfig> ExtSigAlgProcessor for TlsServerCtx<C> {
 
 use ytls_typed::Version;
 
-impl<C: TlsServerCtxConfig> ExtVersionProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtVersionProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn supported_version(&mut self, s_ver: Version) -> bool {
         //println!("Version {:?}", s_ver);
@@ -180,21 +194,27 @@ impl<C: TlsServerCtxConfig> ExtVersionProcessor for TlsServerCtx<C> {
 
 use ytls_typed::Alpn;
 
-impl<C: TlsServerCtxConfig> ExtAlpnProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtAlpnProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn alpn<'r>(&mut self, alpn: Alpn<'r>) -> bool {
         self.config.alpn(alpn)
     }
 }
 
-impl<C: TlsServerCtxConfig> ExtRecSizeLimitProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtRecSizeLimitProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn record_size_limit(&mut self, lim: u16) -> () {
         self.record_size_limit = lim;
     }
 }
 
-impl<C: TlsServerCtxConfig> ExtDelegatedCredentialProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtDelegatedCredentialProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn delegated_credential_signature_algorithm(&mut self, _sa: SignatureAlgorithm) -> bool {
         //println!("Delegated sig alg: {:?}", sa);
@@ -202,7 +222,9 @@ impl<C: TlsServerCtxConfig> ExtDelegatedCredentialProcessor for TlsServerCtx<C> 
     }
 }
 
-impl<C: TlsServerCtxConfig> ExtPskeProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtPskeProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn pske_mode(&mut self, _pske: PskeKind) -> () {
         //println!("Pre-Shared Key Exchange Mode: {:?}", pske);
@@ -211,7 +233,9 @@ impl<C: TlsServerCtxConfig> ExtPskeProcessor for TlsServerCtx<C> {
 
 use ytls_typed::CertificateCompressKind;
 
-impl<C: TlsServerCtxConfig> ExtCompressCertProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtCompressCertProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     #[inline]
     fn compress_certificate(&mut self, _alg: CertificateCompressKind) -> () {
         //println!("Certificate Compress avail: {:?}", alg);
@@ -220,7 +244,9 @@ impl<C: TlsServerCtxConfig> ExtCompressCertProcessor for TlsServerCtx<C> {
 
 use ytls_typed::{HaeadKind, HkdfKind};
 
-impl<C: TlsServerCtxConfig> ExtEncryptedClientHelloProcessor for TlsServerCtx<C> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtEncryptedClientHelloProcessor
+    for TlsServerCtx<C, Crypto, Rng>
+{
     fn encrypted_client_hello_outer(
         &mut self,
         config_id: u8,

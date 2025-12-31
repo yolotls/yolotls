@@ -1,8 +1,8 @@
 [package]
-name = "ytls-server"
+name = "ytls-keys"
 version = "0.0.1"
 edition = "2021"
-description = "yolox sans-io TLS server context"
+description = "yolox sans-io TLS keying context"
 homepage = "https://github.com/yolotls/yolotls"
 keywords = ["io", "uring", "epoll", "async"]
 license = "Apache-2.0/MIT"
@@ -20,16 +20,14 @@ rand = { version = "=0.10.0-rc.5", default-features = false, features = ["thread
 [features]
 default = []
 std = []
+zeroize = ["dep:zeroize"]
 
 [dependencies]
-ytls-extensions = { path = "../extensions" }
-ytls-keys = { path = "../keys" }
 ytls-traits = { path = "../traits" }
-ytls-record = { path = "../record" }
-ytls-typed = { path = "../typed" }
 ytls-util = { path = "../util" }
-rand_core = { version = "=0.10.0-rc-2", default-features = false }
 hex = "0.4.3"
+hkdf = { version = "=0.13.0-rc.3", default-features = false }
+zeroize = { version = "1.8", default-features = false, optional = true }
 
 [package.metadata.docs.rs]
 features = []

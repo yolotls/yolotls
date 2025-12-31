@@ -41,6 +41,11 @@ fn handle_client(mut stream: TcpStream) {
         out_buf: Vec::with_capacity(8192),
     };
 
+    let rng = rand::rng();
+    let crypto_cfg = ytls_rustcrypto::RustCrypto;
+    let tls_cfg = MyTlsServerCfg {};
+    let mut tls_ctx = TlsServerCtx::with_config_and_crypto(tls_cfg, crypto_cfg, rng).unwrap();
+
     loop {
         let s = stream.read(&mut buf).unwrap();
 
@@ -51,9 +56,6 @@ fn handle_client(mut stream: TcpStream) {
 
         println!("Read {s} bytes");
         println!("Bytes = {}", hex::encode(&buf[0..s]));
-
-        let tls_cfg = MyTlsServerCfg {};
-        let mut tls_ctx = TlsServerCtx::with_config(tls_cfg).unwrap();
 
         tls_ctx
             .process_tls_records(&mut tls_buffers, &buf[0..s])

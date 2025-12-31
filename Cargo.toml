@@ -1,4 +1,4 @@
 [workspace]
-members = ["record", "server", "typed", "extensions", "util"]
+members = ["record", "server", "typed", "extensions", "util", "crypto/*", "keys", "validation/*"]
 exclude = ["examples/*"]
 resolver = "2"

@@ -25,22 +25,17 @@ pub use error::*;
 //
 //-----------------------------------------------
 
-mod t_builder;
-#[doc(inline)]
-pub use t_builder::*;
+#[cfg(test)]
+mod hasher;
+#[cfg(test)]
+pub use hasher::*;
 
-mod t_crypto;
-#[doc(inline)]
-pub use t_crypto::*;
+#[cfg(test)]
+mod x25519;
+#[cfg(test)]
+pub use x25519::*;
 
-mod t_io;
-#[doc(inline)]
-pub use t_io::*;
-
-mod t_keys;
-#[doc(inline)]
-pub use t_keys::*;
-
-mod t_parser;
-#[doc(inline)]
-pub use t_parser::*;
+#[cfg(test)]
+mod hkdf;
+#[cfg(test)]
+pub use hkdf::*;

@@ -22,25 +22,9 @@ mod error;
 pub use error::*;
 
 //-----------------------------------------------
-//
+// TLS 1.3 Key Schedule
 //-----------------------------------------------
 
-mod t_builder;
+mod tls13_key_schedule;
 #[doc(inline)]
-pub use t_builder::*;
-
-mod t_crypto;
-#[doc(inline)]
-pub use t_crypto::*;
-
-mod t_io;
-#[doc(inline)]
-pub use t_io::*;
-
-mod t_keys;
-#[doc(inline)]
-pub use t_keys::*;
-
-mod t_parser;
-#[doc(inline)]
-pub use t_parser::*;
+pub use tls13_key_schedule::*;

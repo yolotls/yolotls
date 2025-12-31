@@ -17,6 +17,7 @@ default = []
 std = []
 
 [dependencies]
+rand_core = { version = "=0.10.0-rc-2", default-features = false }
 
 [package.metadata.docs.rs]
 features = []

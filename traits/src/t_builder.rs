@@ -1,33 +1,4 @@
-//! ytls traits
-
-//----------------------------------------------------------
-// Providers
-//----------------------------------------------------------
-
-pub trait CryptoProcessor {
-    //
-}
-
-//----------------------------------------------------------
-// SendOut is required for I/O layer linkage
-//----------------------------------------------------------
-
-/// TLS State Machine Left (Ciphertext) or "Network" I/O side
-pub trait TlsLeft {
-    /// Send encoded record data out.
-    fn send_record_out(&mut self, data: &[u8]) -> ();
-}
-
-//----------------------------------------------------------
-// Record Parsing
-//----------------------------------------------------------
-
-pub trait ClientHelloProcessor {
-    fn handle_extension(&mut self, _ext_id: u16, _ext_data: &[u8]) -> ();
-    fn handle_cipher_suite(&mut self, _cs: &[u8; 2]) -> ();
-    fn handle_client_random(&mut self, _cr: &[u8; 32]) -> ();
-    fn handle_session_id(&mut self, _ses_id: &[u8]) -> ();
-}
+//! ytls Builder traits
 
 //----------------------------------------------------------
 // Record Building (Untyped)
@@ -42,6 +13,8 @@ pub trait UntypedHandshakeBuilder {
     fn server_hello_untyped<S: UntypedServerHelloBuilder>(_: &S) -> Result<Self, Self::Error>
     where
         Self: Sized;
+    /// Provide the raw encoded bytes but without header
+    fn without_header_as_bytes(&self) -> &[u8];
     /// Provide the raw encoded bytes
     fn as_encoded_bytes(&self) -> &[u8];
 }

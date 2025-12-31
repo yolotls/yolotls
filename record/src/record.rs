@@ -42,12 +42,15 @@ pub struct RecordHeader {
 #[derive(Debug)]
 pub struct Record<'r> {
     header: &'r RecordHeader,
+    raw_bytes: &'r [u8],
     content: Content<'r>,
 }
 
 /// Content of the underlying Record
 #[derive(Debug)]
 pub enum Content<'r> {
+    /// Record is ApplicationData
+    ApplicationData,
     /// Record is a Handshake
     Handshake(HandshakeMsg<'r>),
     /// Record is an Alert
@@ -55,6 +58,10 @@ pub enum Content<'r> {
 }
 
 impl<'r> Record<'r> {
+    /// Provide the raw record in bytes without header
+    pub fn as_bytes(&self) -> &[u8] {
+        self.raw_bytes
+    }
     /// Provide the Conten Type of the Record
     pub fn content_type(&self) -> ContentType {
         self.header.content_type
@@ -75,6 +82,8 @@ impl<'r> Record<'r> {
             return Err(RecordError::OverflowLength);
         }
 
+        let raw_bytes = &rest[0..usize::from(hdr.record_length)];
+
         let (content, rest_next) = match hdr.content_type {
             ContentType::Handshake => {
                 let (c, r_next) = HandshakeMsg::client_parse(prc, rest).unwrap();
@@ -84,12 +93,17 @@ impl<'r> Record<'r> {
                 let (c, r_next) = AlertMsg::client_parse(prc, rest).unwrap();
                 (Content::Alert(c), r_next)
             }
+            ContentType::ApplicationData => {
+                let r_next = &rest[usize::from(hdr.record_length)..];
+                (Content::ApplicationData, r_next)
+            }
             _ => todo!("Record {:?} not implemented.", hdr.content_type),
         };
 
         Ok((
             Self {
                 header: hdr,
+                raw_bytes,
                 content,
             },
             rest_next,

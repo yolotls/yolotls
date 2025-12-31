@@ -1,8 +1,8 @@
 [package]
-name = "ytls-server"
+name = "ytls-rustcrypto"
 version = "0.0.1"
 edition = "2021"
-description = "yolox sans-io TLS server context"
+description = "yolox TLS rustcrypto processor"
 homepage = "https://github.com/yolotls/yolotls"
 keywords = ["io", "uring", "epoll", "async"]
 license = "Apache-2.0/MIT"
@@ -14,25 +14,24 @@ categories = ["science"]
 hex = "0.4.3"
 rstest = "0.26"
 hex-literal = "1.1"
-ytls-rustcrypto = { path = "../crypto/rustcrypto" }
-rand = { version = "=0.10.0-rc.5", default-features = false, features = ["thread_rng"] }
+insta = "1.45"
+criterion = "0.8"
 
 [features]
 default = []
 std = []
 
 [dependencies]
-ytls-extensions = { path = "../extensions" }
-ytls-keys = { path = "../keys" }
-ytls-traits = { path = "../traits" }
-ytls-record = { path = "../record" }
-ytls-typed = { path = "../typed" }
-ytls-util = { path = "../util" }
+ytls-traits = { path = "../../traits" }
+x25519-dalek = { version = "=3.0.0-pre.3", default-features = false }
+sha2 = { version = "=0.11.0-rc.3", default-features = false }
 rand_core = { version = "=0.10.0-rc-2", default-features = false }
-hex = "0.4.3"
+hkdf = { version = "=0.13.0-rc.3", default-features = false }
+chacha20poly1305 = { version = "=0.11.0-rc.1", default-features = false }
 
 [package.metadata.docs.rs]
 features = []
 
-#[[example]]
-#name = "listener"
+#[[bench]]
+#name = "bencher"
+#harness = false
