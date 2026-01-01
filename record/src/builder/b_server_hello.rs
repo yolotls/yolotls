@@ -2,7 +2,7 @@
 
 use crate::error::BuilderError;
 
-use ytls_traits::UntypedServerHelloBuilder;
+use ytls_traits::ServerHelloBuilder;
 
 #[derive(Debug, PartialEq)]
 pub struct BufStaticServerHello<const N: usize> {
@@ -13,17 +13,15 @@ pub struct BufStaticServerHello<const N: usize> {
 use super::formatter::EncoderU16;
 
 impl<const N: usize> BufStaticServerHello<N> {
-    pub(crate) fn as_without_header_ref(&self) -> &[u8] {
+    pub(crate) fn as_hashing_context(&self) -> &[u8] {
         &self.bytes_buf[5..self.bytes_len]
     }
-    pub(crate) fn as_ref(&self) -> &[u8] {
+    pub(crate) fn as_encoded_bytes(&self) -> &[u8] {
         &self.bytes_buf[0..self.bytes_len]
     }
     // Construct static Buffered ServerHello
     #[inline]
-    pub(crate) fn static_from_untyped<S: UntypedServerHelloBuilder>(
-        s: &S,
-    ) -> Result<Self, BuilderError> {
+    pub(crate) fn static_from_untyped<S: ServerHelloBuilder>(s: &S) -> Result<Self, BuilderError> {
         let mut cursor = EncoderU16::<N>::new();
         let mut buffer: [u8; N] = [0; N];
         //-----------------------
@@ -135,12 +133,12 @@ impl<const N: usize> BufStaticServerHello<N> {
 #[cfg(test)]
 mod test_ok_no_extensions {
     use super::*;
-    use ytls_traits::UntypedHandshakeBuilder;
-    use ytls_traits::UntypedServerHelloBuilder;
+    use ytls_traits::HandshakeBuilder;
+    use ytls_traits::ServerHelloBuilder;
 
     struct Tester;
 
-    impl UntypedServerHelloBuilder for Tester {
+    impl ServerHelloBuilder for Tester {
         /// This should return [3, 3] for TLS 1.3
         fn legacy_version(&self) -> &[u8; 2] {
             &[3, 3]
@@ -236,7 +234,7 @@ mod test_ok_no_extensions {
 
         let b = BufStaticServerHello::<8192>::static_from_untyped(&tester).unwrap();
 
-        let h = hex::encode(b.as_ref());
+        let h = hex::encode(b.as_encoded_bytes());
 
         assert_eq!(h, "160303004c0200004803030102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20203e3d3c3b3a393837363534333231302f2e2d2c2b2a292827262524232221201f1303000000");
     }
@@ -245,12 +243,12 @@ mod test_ok_no_extensions {
 #[cfg(test)]
 mod test_ok_yes_two_extensions {
     use super::*;
-    use ytls_traits::UntypedHandshakeBuilder;
-    use ytls_traits::UntypedServerHelloBuilder;
+    use ytls_traits::HandshakeBuilder;
+    use ytls_traits::ServerHelloBuilder;
 
     struct Tester;
 
-    impl UntypedServerHelloBuilder for Tester {
+    impl ServerHelloBuilder for Tester {
         /// This should return [3, 3] for TLS 1.3
         fn legacy_version(&self) -> &[u8; 2] {
             &[3, 3]
@@ -370,7 +368,7 @@ mod test_ok_yes_two_extensions {
 
         let b = BufStaticServerHello::<8192>::static_from_untyped(&tester).unwrap();
 
-        let h = hex::encode(b.as_ref());
+        let h = hex::encode(b.as_encoded_bytes());
 
         assert_eq!(h, "160303005b0200005703030102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20203e3d3c3b3a393837363534333231302f2e2d2c2b2a292827262524232221201f130300000f001c00024001002b00050403040303");
     }

@@ -60,6 +60,8 @@ pub trait CryptoX25519Processor {
 pub trait CryptoSha256TranscriptProcessor {
     /// Update the SHA256 Transcript with the given data
     fn sha256_update(&mut self, _: &[u8]) -> ();
+    /// Clone ourselves
+    fn sha256_fork(&self) -> Self;
     /// Finalize the current SHA384 digest
     fn sha256_finalize(self) -> [u8; 32];
 }

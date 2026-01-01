@@ -72,7 +72,7 @@ impl<'r> AlertMsg<'r> {
     }
     /// Parse Client Record
     pub fn client_parse<P: ClientHelloProcessor>(
-        prc: &mut P,
+        _prc: &mut P,
         bytes: &'r [u8],
     ) -> Result<(Self, &'r [u8]), RecordError> {
         let (msg, rest) =

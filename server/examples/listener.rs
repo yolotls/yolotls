@@ -6,19 +6,39 @@ use ytls_typed::Alpn;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
-struct MyTlsServerCfg;
+struct MyTlsServerCfg {
+    server_certs: Vec<u8>,
+    server_private_key: Vec<u8>,
+}
 
 impl TlsServerCtxConfig for MyTlsServerCfg {
     // Sets the context against a hostname if true
+    #[inline]
     fn dns_host_name(&self, host: &str) -> bool {
         // We only serve a single hostname
         host == "test.rustcryp.to"
     }
+    #[inline]
     fn alpn<'r>(&self, alpn: Alpn<'r>) -> bool {
         if alpn == Alpn::Http11 {
             return true;
         }
         false
+    }
+    #[inline]
+    fn server_private_key(&self) -> &[u8] {
+        &self.server_private_key
+    }
+    #[inline]
+    fn server_cert_chain(&self) -> &[u8] {
+        &[0]
+    }
+    #[inline]
+    fn server_cert(&self, id: u8) -> &[u8] {
+        match id {
+            0 => &self.server_certs,
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -34,6 +54,25 @@ impl TlsLeft for Buffers {
     }
 }
 
+//const CA: &'static str = "test_certs/ca.rsa4096.crt";
+//const CA: &'static str = "test_certs/ca.ed25519.crt";
+const CA: &'static str = "../test_certs/ca.prime256v1.crt";
+
+//const CERT: &'static str = "test_certs/rustcryp.to.rsa4096.ca_signed.crt";
+//const CERT: &'static str = "test_certs/rustcryp.to.ed25519.ca_signed.crt";
+const CERT: &'static str = "../test_certs/rustcryp.to.prime256v1.ca_signed.crt";
+
+//const KEY: &'static str = "test_certs/rustcryp.to.rsa4096.key";
+//const KEY: &'static str = "test_certs/rustcryp.to.ed25519.key";
+const KEY: &'static str = "../test_certs/rustcryp.to.prime256v1.pem";
+
+fn load_pem_vec(path: &str) -> Vec<u8> {
+    let mut f = std::fs::File::open(path).unwrap();
+    let mut data: Vec<u8> = vec![];
+    f.read_to_end(&mut data).unwrap();
+    data
+}
+
 fn handle_client(mut stream: TcpStream) {
     let mut buf: [u8; 8192] = [0; 8192];
 
@@ -43,7 +82,31 @@ fn handle_client(mut stream: TcpStream) {
 
     let rng = rand::rng();
     let crypto_cfg = ytls_rustcrypto::RustCrypto;
-    let tls_cfg = MyTlsServerCfg {};
+
+    let ca_vec = load_pem_vec(CA);
+    let cert_vec = load_pem_vec(CERT);
+    let key_vec = load_pem_vec(KEY);
+
+    let (cert_type_label, cert_data) = pem_rfc7468::decode_vec(&cert_vec).unwrap();
+    println!(
+        "Loaded Cert<{:?}> Len<{}>",
+        cert_type_label,
+        cert_data.len()
+    );
+
+    let (key_type_label, key_data) = pem_rfc7468::decode_vec(&key_vec).unwrap();
+    println!("Loaded Key<{:?}> Len<{}>", key_type_label, key_data.len());
+
+    let (ca_type_label, ca_data) = pem_rfc7468::decode_vec(&ca_vec).unwrap();
+    println!("Loaded CA<{:?}> Len<{}>", ca_type_label, ca_data.len());
+
+    let mut combined_certs = ca_data;
+    combined_certs.extend(cert_data);
+
+    let tls_cfg = MyTlsServerCfg {
+        server_certs: combined_certs,
+        server_private_key: key_data,
+    };
     let mut tls_ctx = TlsServerCtx::with_config_and_crypto(tls_cfg, crypto_cfg, rng).unwrap();
 
     loop {

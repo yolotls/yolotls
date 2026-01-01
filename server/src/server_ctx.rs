@@ -7,6 +7,9 @@ use ytls_record::Record;
 mod r_server_hello;
 mod s_client_hello;
 
+mod r_encrypted_extensions;
+mod r_server_certificates;
+
 use ytls_traits::CryptoConfig;
 use ytls_traits::TlsLeft;
 
@@ -27,6 +30,8 @@ use rand_core::CryptoRng;
 
 use crate::TlsServerCtxConfig;
 use crate::TlsServerCtxError;
+
+use ytls_util::Nonce12;
 
 /// State machine context for yTLS Server
 pub struct TlsServerCtx<Config, Crypto, Rng> {
@@ -72,7 +77,8 @@ pub struct TlsServerCtx<Config, Crypto, Rng> {
     /// Handshake secret key
     handshake_secret_key: Option<[u8; 32]>,
     /// Handshake secret iv
-    handshake_secret_iv: Option<[u8; 12]>,
+    //handshake_secret_iv: Option<[u8; 12]>,
+    handshake_server_iv: Option<Nonce12>,
 }
 
 impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
@@ -103,7 +109,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             shared_secret: None,
             key_share: [0; 36],
             handshake_secret_key: None,
-            handshake_secret_iv: None,
+            handshake_server_iv: None,
         })
     }
     /// Process incoming TLS Records
@@ -156,19 +162,12 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             Content::ApplicationData => {
                 println!("ApplicationData ..  = {}", hex::encode(rec.as_bytes()));
 
-                let handshake_secret_key = match self.handshake_secret_key {
-                    Some(k) => k,
-                    None => return Err(TlsServerCtxError::UnexpectedAppData),
-                };
-
-                //let tag = cipher.decrypt_inout_detached(&nonce, b"", app_data[5..].as_mut().into()).unwrap();
+                // TODO: decrypt
             }
             Content::Handshake(content) => {
                 let msg = content.msg();
                 match msg {
                     MsgType::ClientHello(h) => {
-                        //println!("ClientHello len<{}> bytes = {}", rec.as_bytes().len(), hex::encode(rec.as_bytes()));
-
                         let shared_secret = match self.shared_secret {
                             Some(s) => s,
                             None => {
@@ -182,16 +181,8 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         transcript.sha256_update(rec.as_bytes());
                         println!("ClientHello = {:?}", h);
                         self.do_server_hello(l, &mut transcript)?;
+                        let mut transcript_more = transcript.sha256_fork();
                         let hello_hash = transcript.sha256_finalize();
-
-                        /*
-                        println!("Client Hello random = {}", hex::encode(self.client_random.unwrap()));
-                        println!("Hello hash = {}", hex::encode(hello_hash));
-                        println!("Public key = {}", hex::encode(self.public_key.unwrap()));
-                        println!("Derived secret = {}", hex::encode(derived_secret));
-                        println!("Shared secret = {}", hex::encode(shared_secret));
-                        println!("Client secret = {}", hex::encode(client_secret));
-                        */
 
                         let k = Tls13Keys::<Crypto>::no_psk_with_crypto_and_sha256();
                         let hs_k = k.dh_x25519(&shared_secret, &hello_hash);
@@ -201,49 +192,12 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         hs_k.handshake_server_key(&mut server_handshake_key);
 
                         self.handshake_secret_key = Some(server_handshake_key);
-                        self.handshake_secret_iv = Some(server_handshake_iv);
+                        //self.handshake_secret_iv = Some(server_handshake_iv);
+                        self.handshake_server_iv = Some(Nonce12::from_ks_iv(&server_handshake_iv));
 
-                        /*
-                        use chacha20poly1305::{
-                            aead::{AeadCore, AeadInOut, KeyInit},
-                            ChaCha20Poly1305, Nonce
-                        }; */
+                        self.do_encrypted_extensions(l, &mut transcript_more)?;
 
-                        let key: [u8; 32] = server_handshake_key;
-                        let cipher = Crypto::aead_chaha20poly1305(&key);
-
-                        let mut app_data: [u8; 28] = [
-                            // 5 bytes header (cleartext)
-                            0x17, 0x03, 0x03, 0x00, 0x17,
-                            // 7 bytes app data (to encrypt)
-                            0x08, 0x00, 0x00, 0x02, 0x00, 0x00, 0x16,
-                            // 16 bytes (encrypt auth tag)
-                            00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00,
-                        ];
-
-                        let tag = if let Ok([additional_data, encrypt_payload]) =
-                            app_data.get_disjoint_mut([0..5, 5..12])
-                        {
-                            let nonce = server_handshake_iv;
-                            cipher
-                                .encrypt_in_place(
-                                    &nonce,
-                                    &additional_data,
-                                    encrypt_payload.as_mut(),
-                                )
-                                .unwrap()
-                        } else {
-                            panic!("No disjoint.");
-                        };
-
-                        println!("App_data[2] = {}", hex::encode(app_data));
-                        println!("Tag = {}", hex::encode(tag));
-
-                        app_data[12..28].copy_from_slice(tag.as_slice());
-
-                        l.send_record_out(&app_data);
-
-                        println!("Sending out = {}", hex::encode(app_data));
+                        self.do_server_certificates(l, &mut transcript_more)?;
                     }
                 }
             }

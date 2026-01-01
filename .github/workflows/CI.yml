@@ -12,18 +12,41 @@ jobs:
     name: CI is green
     runs-on: ubuntu-latest
     needs:
-      - style
-      - test
-      - doc
+      - check-test-all
     steps:
       - run: exit 0
 
-  style:
-    name: Check Styles
+  build-nostds:
+    name: Build on no_std target (thumbv7em-none-eabi)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - crate: ytls-typed
+          - crate: ytls-rustcrypto
+          - crate: ytls-traits        
+          - crate: ytls-util
+          - crate: ytls-extensions
+          - crate: ytls-keys
+          - crate: ytls-record
+#         - crate: ytls-server (tmp debug)
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: thumbv7em-none-eabi
+      - uses: taiki-e/install-action@cargo-hack
+      # No default features build
+      - name: no_std / parser-builder
+        run: cargo build -p ${{ matrix.crate }} --target thumbv7em-none-eabi --release --no-default-features
+
+  check-test-all:
+    name: test, fmt, clippy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v3
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -31,91 +54,7 @@ jobs:
           toolchain: stable
           components: clippy, rustfmt
 
-      - name: cargo fmt --check
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-
-  test:
-    name: Test ${{ matrix.rust }} on ${{ matrix.os }}
-    needs: [style]
-    env:
-      RUN_MODE: development
-      RUST_BACKTRACE: 1
-
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
-          - 1.60
-
-        os:
-          - ubuntu-latest
-          - windows-latest
-          - macOS-latest
-
-        include:
-          - rust: stable
-            features: "--features full"
-            os: ubuntu-latest
-          - rust: beta
-            features: "--features full"
-            os: ubuntu-latest
-          - rust: nightly
-            features: "--features full,nightly"            
-            benches: true
-            os: ubuntu-latest
-          - rust: 1.47
-            features: "--features full"
-            os: ubuntu-latest
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.0
-
-      - name: Install Rust (${{ matrix.rust }})
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          override: true
-
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: ${{ matrix.features }}
-
-      - name: Test all benches
-        if: matrix.benches
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --benches ${{ matrix.features }}
-
-  doc:
-    name: Build docs
-    needs: [style, test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.0
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-
-      - name: cargo doc
-        uses: actions-rs/cargo@v1
-        with:
-          command: rustdoc
-          args: --features full
-
+      - run: cargo test --all-features
+      - run: cargo fmt --check
+      - run: cargo clippy
+      - run: cargo doc

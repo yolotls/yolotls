@@ -24,7 +24,8 @@ default = []
 std = []
 
 [dependencies]
-hex = "0.4.3"
+crypto-bigint = { version = "=0.7.0-rc.10", default-features = false }
+
 [package.metadata.docs.rs]
 features = []
 

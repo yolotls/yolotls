@@ -1,1 +1,5 @@
 target
+test_certs/*.crt
+test_certs/*.srl
+test_certs/*.pem
+test_certs/*.csr

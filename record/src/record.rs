@@ -130,6 +130,12 @@ mod test {
             self.suites_encountered
                 .push([cipher_suite[0], cipher_suite[1]]);
         }
+        fn handle_client_random(&mut self, _cr: &[u8; 32]) {
+            //self.client_random = Some(cr);
+        }
+        fn handle_session_id(&mut self, _sid: &[u8]) {
+            //self.session_id = Some(sid);
+        }
     }
 
     #[test]

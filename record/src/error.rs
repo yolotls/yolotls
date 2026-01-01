@@ -54,8 +54,11 @@ impl RecordError {
 
 #[derive(Debug, PartialEq)]
 pub enum BuilderError {
-    /// Static buffer is not long enough to hold the buffered record.
+    /// Static buffer is either not long enough to hold the buffered record
+    /// or length of payload part is overflowing maximum possible.
     Overflow,
     /// Session Id length is one byte but size was > 255
     SessionIdOverflow,
+    /// Error getting disjoint mut
+    DisjointMutError,
 }
