@@ -31,6 +31,7 @@ ytls-record = { path = "../record" }
 ytls-typed = { path = "../typed" }
 ytls-util = { path = "../util" }
 rand_core = { version = "=0.10.0-rc-2", default-features = false }
+# temp debug
 hex = "0.4.3"
 crypto-bigint = { version = "=0.7.0-rc.10", default-features = false }
 

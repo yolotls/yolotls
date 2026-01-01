@@ -22,7 +22,7 @@ std = []
 
 [dependencies]
 ytls-traits = { path = "../traits" }
-hex = "0.4.3"
+#hex = "0.4.3"
 zerocopy = { version = "0.8", default-features = false, features = ["derive"] }
 
 [package.metadata.docs.rs]
