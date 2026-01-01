@@ -49,6 +49,12 @@ mod test {
             self.suites_encountered
                 .push([cipher_suite[0], cipher_suite[1]]);
         }
+        fn handle_client_random(&mut self, _: &[u8; 32]) {
+            unreachable!()
+        }
+        fn handle_session_id(&mut self, _: &[u8]) {
+            unreachable!()
+        }
     }
 
     use hex_literal::hex;

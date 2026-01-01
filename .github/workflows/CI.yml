@@ -48,9 +48,6 @@ jobs:
       matrix:
         rust:
           - stable
-          - beta
-          - nightly
-          - 1.60
 
         os:
           - ubuntu-latest

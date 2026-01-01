@@ -37,7 +37,7 @@ impl HkdfLabelSha256 {
             13, // tls13\s (6 bytes)
             116, 108, 115, 49, 51, 32, // derived (7 bytes)
             100, 101, 114, 105, 118, 101, 100, // Len of "ctx" (1 byte)
-            32, // ctx = empty SHA256("") (32 bytes)
+            32,  // ctx = empty SHA256("") (32 bytes)
             0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f,
             0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b,
             0x78, 0x52, 0xb8, 0x55,
@@ -132,7 +132,7 @@ mod test_rfc8448 {
     // Check the early secret without PSK is correct
     #[test]
     fn early_secret_no_psk_ok() {
-        let (ek, hk) = early_secret_no_psk();
+        let (ek, _hk) = early_secret_no_psk();
         assert_eq!(
             ek,
             hex!(
@@ -144,7 +144,7 @@ mod test_rfc8448 {
 
     // Check the derive secret is correct for SHA256
     fn derived_sha256() -> ([u8; 32], GenericHkdf<Hmac<Sha256>>) {
-        let (ek, hk) = early_secret_no_psk();
+        let (_ek, hk) = early_secret_no_psk();
         //*****************************************************
         // empty_hash = SHA256("")
         // derived_secret = HKDF-Expand-Label(key: early_secret, label: "derived", ctx: empty_hash, len: 32)
@@ -160,13 +160,13 @@ mod test_rfc8448 {
         );
 
         let mut derived_secret: [u8; 32] = [0; 32];
-        hk.expand(&label_derived, &mut derived_secret);
+        hk.expand(&label_derived, &mut derived_secret).unwrap();
         (derived_secret, hk)
     }
 
     #[test]
     fn derived_sha256_ok() {
-        let (derived_secret, hk) = derived_sha256();
+        let (derived_secret, _hk) = derived_sha256();
         assert_eq!(
             derived_secret,
             hex!(
@@ -184,7 +184,7 @@ mod test_rfc8448 {
     }
 
     fn handshake_secret() -> ([u8; 32], GenericHkdf<Hmac<Sha256>>) {
-        let (derived_secret, derived_hk) = derived_sha256();
+        let (derived_secret, _derived_hk) = derived_sha256();
         let shared_secret = shared_secret();
         let (handshake_secret, hk) = Hkdf::<Sha256>::extract(Some(&derived_secret), shared_secret);
         (handshake_secret.into(), hk)
@@ -230,18 +230,17 @@ mod test_rfc8448 {
     // server_secret = HKDF-Expand-Label(key: handshake_secret, label: "s hs traffic", ctx: hello_hash, len: 48)
     //-----------------------------------------------------
     fn server_hs_traffic_secret() -> ([u8; 32], GenericHkdf<Hmac<Sha256>>) {
-        let (handshake_secret, hk) = handshake_secret();
-        let mut server_secret: [u8; 32] = [0; 32];
+        let (_handshake_secret, hk) = handshake_secret();
         let hello_hash = handshake_traffic_hash_input();
         let label = HkdfLabelSha256::tls13_server_handshake_traffic(hello_hash);
         let mut server_secret: [u8; 32] = [0; 32];
-        hk.expand(&label, &mut server_secret);
+        hk.expand(&label, &mut server_secret).unwrap();
         (server_secret, hk)
     }
 
     #[test]
     fn server_hs_traffic_secret_ok() {
-        let (server_secret, hk) = server_hs_traffic_secret();
+        let (server_secret, _hk) = server_hs_traffic_secret();
         assert_eq!(
             &server_secret,
             &hex!(
@@ -259,7 +258,7 @@ mod test_rfc8448 {
         let mut server_handshake_key: [u8; 16] = [0; 16];
         let key_label = HkdfLabelSha256::tls13_secret_key(16);
         assert_eq!(&key_label, &hex!("00 10 09 74 6c 73 31 33 20 6b 65 79 00"));
-        hk.expand(&key_label, &mut server_handshake_key);
+        hk.expand(&key_label, &mut server_handshake_key).unwrap();
         assert_eq!(
             &server_handshake_key,
             &hex!("3f ce 51 60 09 c2 17 27 d0 f2 e4 e8 6e e4 03 bc")
@@ -272,9 +271,9 @@ mod test_rfc8448 {
 
         let hk = Hkdf::<Sha256>::from_prk(&server_secret).expect("PRK should be large enough");
         let mut server_handshake_iv: [u8; 12] = [0; 12];
-        let iv_label = HkdfLabelSha256::tls13_secret_iv();
+        let iv_label = HkdfLabelSha256::tls13_secret_iv(12);
         assert_eq!(&iv_label, &hex!("00 0c 08 74 6c 73 31 33 20 69 76 00"));
-        hk.expand(&iv_label, &mut server_handshake_iv);
+        hk.expand(&iv_label, &mut server_handshake_iv).unwrap();
         assert_eq!(
             &server_handshake_iv,
             &hex!("5d 31 3e b2 67 12 76 ee 13 00 0b 30")

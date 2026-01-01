@@ -32,3 +32,7 @@ pub use byte_slices::*;
 mod hkdf_label;
 #[doc(inline)]
 pub use hkdf_label::*;
+
+mod nonce;
+#[doc(inline)]
+pub use nonce::*;

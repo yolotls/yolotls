@@ -7,10 +7,10 @@ use crate::TlsServerCtxError;
 use ytls_record::StaticRecordBuilder;
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;
-use ytls_traits::UntypedServerHelloBuilder;
+use ytls_traits::ServerHelloBuilder;
 
+use ytls_traits::HandshakeBuilder;
 use ytls_traits::TlsLeft;
-use ytls_traits::UntypedHandshakeBuilder;
 
 use ytls_traits::CryptoSha256TranscriptProcessor;
 
@@ -24,10 +24,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
         let b = StaticRecordBuilder::<8192>::server_hello_untyped(self)
             .map_err(TlsServerCtxError::Builder)?;
 
-        //println!("ServerHello/w<{}> = {}", b.as_encoded_bytes().len(), hex::encode(b.as_encoded_bytes()));
-        //println!("ServerHello/p<{}> = {}", b.without_header_as_bytes().len(), hex::encode(b.without_header_as_bytes()));
-        t.sha256_update(b.without_header_as_bytes());
-
+        t.sha256_update(b.as_hashing_context());
         l.send_record_out(b.as_encoded_bytes());
         Ok(())
     }
@@ -45,7 +42,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> UntypedServerHelloBuilder
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHelloBuilder
     for TlsServerCtx<C, Crypto, Rng>
 {
     fn legacy_version(&self) -> &[u8; 2] {

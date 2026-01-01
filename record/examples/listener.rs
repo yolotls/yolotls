@@ -22,6 +22,14 @@ impl ClientHelloProcessor for TlsProcessor {
     fn handle_cipher_suite(&mut self, cipher_suite: &[u8; 2]) -> () {
         println!("Handle_cipher_suites: {}", hex::encode(cipher_suite));
     }
+    #[inline]
+    fn handle_session_id(&mut self, ses_id: &[u8]) {
+        println!("Handle_session_id = {}", hex::encode(ses_id));
+    }
+    #[inline]
+    fn handle_client_random(&mut self, client_random: &[u8; 32]) {
+        println!("Handle_client_random = {}", hex::encode(client_random));
+    }
 }
 
 fn handle_client(mut stream: TcpStream) {

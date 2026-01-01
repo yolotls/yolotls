@@ -1,16 +1,17 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
 use core::hint::black_box;
+use hex_literal::hex;
 
-use ytls_util::ByteSlices;
+use ytls_util::Nonce12;
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("byte-slices single", |b| {
+    let iv_bytes: [u8; 12] = hex!("6fac81d4f2c3bebe02b8b375");
+    let mut running_nonce = Nonce12::from_ks_iv(&iv_bytes);
+
+    c.bench_function("nonce handouts", |b| {
         b.iter(|| {
-            let f: [u8; 2] = [42, 69];
-            let bs = black_box(ByteSlices::Single(&f));
-            //assert_eq!(bs.len(), 1);
-            //assert_eq!(bs.total_len(), 2);
+            let _cur = black_box(running_nonce.use_and_incr());
         })
     });
 }

@@ -49,6 +49,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
+name = "base64ct"
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e050f626429857a27ddccb31e0aca21356bfa709c04041aefddac081a8f068a"
+
+[[package]]
 name = "bitflags"
 version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -266,6 +272,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
+name = "crypto-bigint"
+version = "0.7.0-rc.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6715836b4946e8585016e80b79c7561476aff3b22f7b756778e7b109d86086c6"
+dependencies = [
+ "num-traits",
+ "subtle",
+]
+
+[[package]]
 name = "crypto-common"
 version = "0.2.0-rc.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -298,6 +314,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "der"
+version = "0.8.0-rc.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02c1d73e9668ea6b6a28172aa55f3ebec38507131ce179051c8033b5c6037653"
 
 [[package]]
 name = "digest"
@@ -597,6 +619,15 @@ checksum = "30d5b2194ed13191c1999ae0704b7839fb18384fa22e49b57eeaa97d79ce40da"
 dependencies = [
  "libc",
  "winapi",
+]
+
+[[package]]
+name = "pem-rfc7468"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6305423e0e7738146434843d1694d621cce767262b2a86910beab705e4493d9"
+dependencies = [
+ "base64ct",
 ]
 
 [[package]]
@@ -1267,8 +1298,11 @@ dependencies = [
 name = "ytls-server"
 version = "0.0.1"
 dependencies = [
+ "crypto-bigint",
+ "der",
  "hex",
  "hex-literal",
+ "pem-rfc7468",
  "rand",
  "rand_core",
  "rstest",
@@ -1304,7 +1338,7 @@ name = "ytls-util"
 version = "0.0.1"
 dependencies = [
  "criterion",
- "hex",
+ "crypto-bigint",
  "hex-literal",
  "hkdf",
  "insta",
