@@ -16,23 +16,30 @@ jobs:
     steps:
       - run: exit 0
 
-#  build-nostds:
-#    name: Build on no_std target (thumbv7em-none-eabi)
-#    runs-on: ubuntu-latest
-#    strategy:
-#      matrix:
-#        include:
-#          - crate: ytls-record
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: dtolnay/rust-toolchain@master
-#        with:
-#          toolchain: stable
-#          targets: thumbv7em-none-eabi
-#      - uses: taiki-e/install-action@cargo-hack
-#      # No default features build
-#      - name: no_std / parser-builder
-#        run: cargo build -p ${{ matrix.crate }} --target thumbv7em-none-eabi --release --no-default-features
+  build-nostds:
+    name: Build on no_std target (thumbv7em-none-eabi)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - crate: ytls-typed
+          - crate: ytls-rustcrypto
+          - crate: ytls-traits        
+          - crate: ytls-util
+          - crate: ytls-extensions
+          - crate: ytls-keys
+          - crate: ytls-record
+#         - crate: ytls-server (tmp debug)
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: thumbv7em-none-eabi
+      - uses: taiki-e/install-action@cargo-hack
+      # No default features build
+      - name: no_std / parser-builder
+        run: cargo build -p ${{ matrix.crate }} --target thumbv7em-none-eabi --release --no-default-features
 
   check-test-all:
     name: test, fmt, clippy
