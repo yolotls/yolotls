@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - crate: record
+          - crate: ytls-record
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
