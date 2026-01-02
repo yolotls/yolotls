@@ -53,13 +53,14 @@ impl<const N: usize> BufStaticServerCertificates<N> {
         buffer[0] = 0x17;
         buffer[1] = 3;
         buffer[2] = 3;
-        let idx_appdata_len_start = 3; // ,4
-                                       //-------------------------------
-                                       // Cleartext <> Ciphertext Start
-                                       // Bytes 0..4 Cleartext
-                                       // Bytes 5..X Ciphertext
-                                       // Bytes X.+16 Auth Tag
-                                       //-------------------------------
+        // ,4
+        let idx_appdata_len_start = 3;
+        //-------------------------------
+        // Cleartext <> Ciphertext Start
+        // Bytes 0..4 Cleartext
+        // Bytes 5..X Ciphertext
+        // Bytes X.+16 Auth Tag
+        //-------------------------------
         let idx_encrypt_start = 5;
 
         //-----------------------------------

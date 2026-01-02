@@ -7,7 +7,8 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
 struct MyTlsServerCfg {
-    server_certs: Vec<u8>,
+    ca_cert: Vec<u8>,
+    server_cert: Vec<u8>,
     server_private_key: Vec<u8>,
 }
 
@@ -31,12 +32,13 @@ impl TlsServerCtxConfig for MyTlsServerCfg {
     }
     #[inline]
     fn server_cert_chain(&self) -> &[u8] {
-        &[0]
+        &[1, 0]
     }
     #[inline]
     fn server_cert(&self, id: u8) -> &[u8] {
         match id {
-            0 => &self.server_certs,
+            0 => &self.server_cert,
+            1 => &self.ca_cert,
             _ => unreachable!(),
         }
     }
@@ -94,17 +96,25 @@ fn handle_client(mut stream: TcpStream) {
         cert_data.len()
     );
 
-    let (key_type_label, key_data) = pem_rfc7468::decode_vec(&key_vec).unwrap();
-    println!("Loaded Key<{:?}> Len<{}>", key_type_label, key_data.len());
+    let (key_type_label, key_data_der) = pem_rfc7468::decode_vec(&key_vec).unwrap();
+    println!(
+        "Loaded Private Key<{:?}> DER Len<{}>",
+        key_type_label,
+        key_data_der.len()
+    );
+
+    use sec1::EcPrivateKey;
+
+    let key_info = EcPrivateKey::try_from(key_data_der.as_ref()).unwrap();
+    println!("private_key length = {}", key_info.private_key.len());
+    let key_data = key_info.private_key.to_vec();
 
     let (ca_type_label, ca_data) = pem_rfc7468::decode_vec(&ca_vec).unwrap();
     println!("Loaded CA<{:?}> Len<{}>", ca_type_label, ca_data.len());
 
-    let mut combined_certs = ca_data;
-    combined_certs.extend(cert_data);
-
     let tls_cfg = MyTlsServerCfg {
-        server_certs: combined_certs,
+        ca_cert: ca_data,
+        server_cert: cert_data,
         server_private_key: key_data,
     };
     let mut tls_ctx = TlsServerCtx::with_config_and_crypto(tls_cfg, crypto_cfg, rng).unwrap();

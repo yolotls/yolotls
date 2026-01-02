@@ -8,6 +8,7 @@ mod r_server_hello;
 mod s_client_hello;
 
 mod r_encrypted_extensions;
+mod r_server_certificate_verify;
 mod r_server_certificates;
 
 use ytls_traits::CryptoConfig;
@@ -79,6 +80,9 @@ pub struct TlsServerCtx<Config, Crypto, Rng> {
     /// Handshake secret iv
     //handshake_secret_iv: Option<[u8; 12]>,
     handshake_server_iv: Option<Nonce12>,
+    /// cert verify ctx hash sha256
+    cert_verify_hash: Option<[u8; 32]>,
+    hello_hash: Option<[u8; 32]>,
 }
 
 impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
@@ -110,6 +114,8 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             key_share: [0; 36],
             handshake_secret_key: None,
             handshake_server_iv: None,
+            cert_verify_hash: None,
+            hello_hash: None,
         })
     }
     /// Process incoming TLS Records
@@ -184,6 +190,8 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         let mut transcript_more = transcript.sha256_fork();
                         let hello_hash = transcript.sha256_finalize();
 
+                        self.hello_hash = Some(hello_hash);
+
                         let k = Tls13Keys::<Crypto>::no_psk_with_crypto_and_sha256();
                         let hs_k = k.dh_x25519(&shared_secret, &hello_hash);
                         let mut server_handshake_iv: [u8; 12] = [0; 12];
@@ -192,12 +200,13 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         hs_k.handshake_server_key(&mut server_handshake_key);
 
                         self.handshake_secret_key = Some(server_handshake_key);
-                        //self.handshake_secret_iv = Some(server_handshake_iv);
                         self.handshake_server_iv = Some(Nonce12::from_ks_iv(&server_handshake_iv));
 
                         self.do_encrypted_extensions(l, &mut transcript_more)?;
 
                         self.do_server_certificates(l, &mut transcript_more)?;
+
+                        self.do_server_certificate_verify(l, &mut transcript_more)?;
                     }
                 }
             }

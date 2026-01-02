@@ -6,6 +6,7 @@ use crate::WrappedRecordBuffer;
 
 use ytls_traits::EncryptedExtensionsBuilder;
 use ytls_traits::HandshakeBuilder;
+use ytls_traits::ServerCertificateVerifyBuilder;
 use ytls_traits::ServerCertificatesBuilder;
 use ytls_traits::ServerHelloBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
@@ -37,6 +38,21 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
             ),
         })
     }
+    /// Construct handshake server certificate verify.
+    fn server_certificate_verify<S: ServerCertificateVerifyBuilder>(
+        s: &S,
+    ) -> Result<Self, Self::Error> {
+        Ok(
+            Self {
+                rec_buf:
+                    WrappedRecordBuffer::<N>::ServerCertificateVerify(
+                        super::b_dhs_server_certificate_verify::BufStaticServerCertificateVerify::<
+                            N,
+                        >::static_from_untyped(s)?,
+                    ),
+            },
+        )
+    }
     /// Construct handshake encrypted extensions.
     fn encrypted_extensions<S: EncryptedExtensionsBuilder>(s: &S) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -49,6 +65,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     fn as_disjoint_mut_for_aead(&mut self) -> Result<[&mut [u8]; 2], Self::Error> {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref mut s) => s.as_disjoint_mut_for_aead(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.as_disjoint_mut_for_aead(),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.as_disjoint_mut_for_aead(),
         }
     }
@@ -56,6 +73,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     fn set_auth_tag(&mut self, new_tag: &[u8; 16]) {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref mut s) => s.set_auth_tag(new_tag),
+            WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.set_auth_tag(new_tag),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.set_auth_tag(new_tag),
         }
     }
@@ -63,6 +81,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     fn as_ciphertext_mut(&mut self) -> &mut [u8] {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref mut s) => s.as_ciphertext_mut(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.as_ciphertext_mut(),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.as_ciphertext_mut(),
         }
     }
@@ -70,6 +89,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     fn as_hashing_context_ref(&self) -> &[u8] {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref s) => &s.as_hashing_context_ref(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref s) => &s.as_hashing_context_ref(),
             WrappedRecordBuffer::EncryptedExtensions(ref s) => &s.as_hashing_context_ref(),
         }
     }
@@ -77,6 +97,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     fn as_encoded_bytes(&self) -> &[u8] {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref s) => &s.as_encoded_bytes(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref s) => &s.as_encoded_bytes(),
             WrappedRecordBuffer::EncryptedExtensions(ref s) => &s.as_encoded_bytes(),
         }
     }

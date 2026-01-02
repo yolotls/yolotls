@@ -24,10 +24,17 @@ pub trait HandshakeBuilder {
 /// written to wire.
 pub trait WrappedHandshakeBuilder {
     type Error;
-    /// Build Server Certificates into TLS1.2 appdata wrapped record
+    /// Build Server Certificates
     fn server_certificates<S: ServerCertificatesBuilder>(_: &S) -> Result<Self, Self::Error>
     where
         Self: Sized;
+    /// Build Server Certificate Verify of which we have the private key of
+    fn server_certificate_verify<S: ServerCertificateVerifyBuilder>(
+        _: &S,
+    ) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
+    /// Build Encrypted Extensions
     fn encrypted_extensions<S: EncryptedExtensionsBuilder>(s: &S) -> Result<Self, Self::Error>
     where
         Self: Sized;
@@ -43,6 +50,16 @@ pub trait WrappedHandshakeBuilder {
     /// Provide the full raw encoded bytes including placeholder
     /// tag and record headers
     fn as_encoded_bytes(&self) -> &[u8];
+}
+
+/// Server certificate verification is provided through trait implementation
+pub trait ServerCertificateVerifyBuilder {
+    /// Provide the signature algorithm used
+    fn signature_algorithm(&self) -> [u8; 2];
+    /// Sign the current handshake hash with the used signature
+    /// algorithm and the server private key used to generate the public key
+    /// within the server certificate.
+    fn sign_cert_verify(&self) -> [u8; 64];
 }
 
 /// Server certificates are provided through trait implementation
