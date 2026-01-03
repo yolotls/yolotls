@@ -1437,7 +1437,6 @@ dependencies = [
  "sha2",
  "x25519-dalek",
  "ytls-traits",
- "zeroize",
 ]
 
 [[package]]
