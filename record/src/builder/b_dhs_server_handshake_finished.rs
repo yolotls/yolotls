@@ -1,11 +1,11 @@
-//! Server Certificate Builder Buffer
+//! Server Handshake Finished Builder Buffer
 
 use crate::error::BuilderError;
 
-use ytls_traits::ServerCertificateVerifyBuilder;
+use ytls_traits::ServerHandshakeFinishedBuilder;
 
 #[derive(Debug, PartialEq)]
-pub struct BufStaticServerCertificateVerify<const N: usize> {
+pub struct BufStaticServerHandshakeFinished<const N: usize> {
     bytes_buf: [u8; N],
     bytes_len: usize,
     cipher_start: usize,
@@ -16,7 +16,7 @@ pub struct BufStaticServerCertificateVerify<const N: usize> {
 
 use super::formatter::EncoderU16;
 
-impl<const N: usize> BufStaticServerCertificateVerify<N> {
+impl<const N: usize> BufStaticServerHandshakeFinished<N> {
     pub(crate) fn set_auth_tag(&mut self, new_tag: &[u8; 16]) -> () {
         self.bytes_buf[self.auth_tag_start..self.auth_tag_end].copy_from_slice(new_tag);
     }
@@ -44,7 +44,7 @@ impl<const N: usize> BufStaticServerCertificateVerify<N> {
         &self.bytes_buf[0..self.bytes_len]
     }
     #[inline]
-    pub(crate) fn static_from_untyped<S: ServerCertificateVerifyBuilder>(
+    pub(crate) fn static_from_untyped<S: ServerHandshakeFinishedBuilder>(
         s: &S,
     ) -> Result<Self, BuilderError> {
         let mut cursor = EncoderU16::<N>::new();
@@ -73,33 +73,24 @@ impl<const N: usize> BufStaticServerCertificateVerify<N> {
         // Bytes 5..9
         //-----------------------------------
         cursor.try_skip_only(4)?;
-        // 0x0b = Handshake type certificate verify
-        buffer[5] = 0x0f;
+        // Handshake type server handshake finished
+        buffer[5] = 0x14;
         let idx_hs_payload_len_start = 6;
         // ,7,8 (u24 BE) cont idx_payload_len_start
 
-        // 9, 10
-        let algorithm: [u8; 2] = s.signature_algorithm();
-        cursor.try_fill_with(&mut buffer, &algorithm)?;
-
-        let signature = s.sign_cert_verify();
-        if signature.len() > u16::MAX as usize {
+        let hash_finished = s.hash_finished();
+        if hash_finished.len() > u16::MAX as usize {
             return Err(BuilderError::Overflow);
         }
-        let s_len_bytes: [u8; 2] = (signature.len() as u16).to_be_bytes();
-
-        // 11, 12
-        cursor.try_fill_with(&mut buffer, &s_len_bytes)?;
-        // 13..
-        cursor.try_fill_with(&mut buffer, &signature)?;
+        // 9..
+        cursor.try_fill_with(&mut buffer, &hash_finished)?;
 
         //----------------------------------------
         // Total handshake length
-        // =  + signature length  2 bytes
-        //    + signature type    2 bytes
-        //    + signature lenghth X bytes
+        // =  + finished length  2 bytes
+        //    + finished lenghth X bytes
         //------------------ ---------------------
-        let hs_total_len_u32_b: [u8; 4] = ((signature.len() + 4) as u32).to_be_bytes();
+        let hs_total_len_u32_b: [u8; 4] = ((hash_finished.len()) as u32).to_be_bytes();
         if hs_total_len_u32_b[0] != 0 {
             return Err(BuilderError::Overflow);
         }
@@ -108,14 +99,14 @@ impl<const N: usize> BufStaticServerCertificateVerify<N> {
 
         //----------------------------------------
         // Total appdata length (for ciphertext)
-        //    + handshake headers 8 bytes     +8
+        //    + handshake headers 8 bytes     +6
         //    + auth tag (aead) 16 bytes     +16
         //    + record type is handshake      +1
         //   ------------------------------------
-        //                          totals    25
+        //                          totals    23
         //    + signature.length              +X
         //------------------ ---------------------
-        let total_app_data_len = 25 + signature.len();
+        let total_app_data_len = 21 + hash_finished.len();
 
         if total_app_data_len > u16::MAX as usize {
             return Err(BuilderError::Overflow);
@@ -145,23 +136,25 @@ impl<const N: usize> BufStaticServerCertificateVerify<N> {
     }
 }
 
-/*
 #[cfg(test)]
-mod test_ok_basic_1cert_verify {
+mod test_ok_basic_hash_finished {
     use super::*;
     use hex_literal::hex;
-    use ytls_traits::ServerCertificateVerifyBuilder;
+    use ytls_traits::ServerHandshakeFinishedBuilder;
 
     struct Tester;
 
-    impl ServerCertificateVerifyBuilder for Tester {
-        fn signature_algorithm(&self) -> [u8; 2] {
-            [0x04, 0x03]
-        }
-        fn sign_cert_verify(&self) -> &[u8] {
-            &[0x69, 0x69, 0x69]
+    impl ServerHandshakeFinishedBuilder for Tester {
+        fn hash_finished(&self) -> &[u8] {
+            &[42, 42]
         }
     }
+
+    // 14
+    // 00 00 22
+    // 00 20 85 22 95 90 9d 12 d6 1e 3f 30
+    //dd fe 9c 82 eb 98 c3 6a 19 47 0d 22 a3 f6 15 fb
+    //ae 13 74 1d ff 8b
 
     //----------------------------------------------
     // Expected Wrapped Record header +5 bytes
@@ -170,19 +163,15 @@ mod test_ok_basic_1cert_verify {
     // 03 03 - Legacy TLS 1.2
     // XX XX - Length X follows
     //----------------------------------------------
-    // Handshake headers +8 bytes
+    // Handshake headers +4 bytes
     //----------------------------------------------
-    // 0f       - Handshake message type: CertificateVerify
-    // 00 XX XX - Length: X bytes Certificate message payload
+    // 14       - Handshake message type: Finished
+    // 00 XX XX - Length: X bytes of hashlen
     //----------------------------------------------
     // Certificate Verify Lengths
     //
     // ---------------------
     // X total
-    //---------------------------------------------
-    // Certificate Verify
-    //---------------------------------------------
-    // 04 03    - ecdsa_secp256r1_sha256
     //---------------------------------------------
     // Wrapped inner record type +1 byte
     //---------------------------------------------
@@ -196,13 +185,12 @@ mod test_ok_basic_1cert_verify {
     fn static_8192_basic() {
         let tester = Tester;
 
-        let b = BufStaticServerCertificateVerify::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticServerHandshakeFinished::<8192>::static_from_untyped(&tester).unwrap();
 
         let h = hex::encode(b.as_encoded_bytes());
 
-        let expected_lit = hex!("17 03 03 03 43");
+        let expected_lit = hex!("17030300191400000400022a2a1600000000000000000000000000000000");
 
         assert_eq!(hex::encode(expected_lit), h);
     }
 }
-*/

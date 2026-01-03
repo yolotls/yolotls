@@ -45,7 +45,13 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             WrappedStaticRecordBuilder::<8192>::encrypted_extensions(self)
                 .map_err(TlsServerCtxError::Builder)?;
 
+        //transcript.sha256_update(&encrypted_extensions.wrapped_hash_header_ref());
         transcript.sha256_update(encrypted_extensions.as_hashing_context_ref());
+
+        println!(
+            "Server Encryption Extensions hash ctx len = {}",
+            encrypted_extensions.as_hashing_context_ref().len()
+        );
 
         let tag = if let Ok([additional_data, encrypt_payload]) =
             encrypted_extensions.as_disjoint_mut_for_aead()
@@ -58,6 +64,8 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
         };
 
         encrypted_extensions.set_auth_tag(&tag);
+        //transcript.sha256_update(&encrypted_extensions.wrapped_hash_header_ref());
+        //transcript.sha256_update(encrypted_extensions.as_hashing_context_ref());
 
         left.send_record_out(encrypted_extensions.as_encoded_bytes());
         Ok(())

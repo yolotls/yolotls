@@ -337,7 +337,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02c1d73e9668ea6b6a28172aa55f3ebec38507131ce179051c8033b5c6037653"
 dependencies = [
  "const-oid",
- "pem-rfc7468",
  "zeroize",
 ]
 
@@ -364,7 +363,6 @@ dependencies = [
  "elliptic-curve",
  "rfc6979",
  "signature",
- "spki",
  "zeroize",
 ]
 
@@ -383,11 +381,7 @@ dependencies = [
  "base16ct",
  "crypto-bigint",
  "digest",
- "getrandom",
  "hybrid-array",
- "once_cell",
- "pem-rfc7468",
- "pkcs8",
  "rand_core",
  "rustcrypto-ff",
  "rustcrypto-group",
@@ -714,16 +708,6 @@ name = "pin-utils"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
-
-[[package]]
-name = "pkcs8"
-version = "0.11.0-rc.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77089aec8290d0b7bb01b671b091095cf1937670725af4fd73d47249f03b12c0"
-dependencies = [
- "der",
- "spki",
-]
 
 [[package]]
 name = "plotters"
@@ -1087,16 +1071,6 @@ name = "slab"
 version = "0.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2ae44ef20feb57a68b23d846850f861394c2e02dc425a50098ae8c90267589"
-
-[[package]]
-name = "spki"
-version = "0.8.0-rc.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8baeff88f34ed0691978ec34440140e1572b68c7dd4a495fd14a3dc1944daa80"
-dependencies = [
- "base64ct",
- "der",
-]
 
 [[package]]
 name = "subtle"
@@ -1483,12 +1457,14 @@ version = "0.0.1"
 dependencies = [
  "hex",
  "hex-literal",
+ "hmac",
  "p256",
  "pem-rfc7468",
  "rand",
  "rand_core",
  "rstest",
  "sec1",
+ "sha2",
  "ytls-extensions",
  "ytls-keys",
  "ytls-record",

@@ -24,6 +24,12 @@ pub trait HandshakeBuilder {
 /// written to wire.
 pub trait WrappedHandshakeBuilder {
     type Error;
+    /// Build Server Handshake Finished
+    fn server_handshake_finished<S: ServerHandshakeFinishedBuilder>(
+        _: &S,
+    ) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
     /// Build Server Certificates
     fn server_certificates<S: ServerCertificatesBuilder>(_: &S) -> Result<Self, Self::Error>
     where
@@ -44,12 +50,24 @@ pub trait WrappedHandshakeBuilder {
     fn set_auth_tag(&mut self, new_tag: &[u8; 16]) -> ();
     /// Provide the cleartext as mutable in order for it to be encrypted into ciphertext.
     fn as_ciphertext_mut(&mut self) -> &mut [u8];
+    /// Provides the missing handshake header for hashing purposes
+    /// which must be included in the transcript hash.
+    fn wrapped_hash_header_ref(&self) -> [u8; 5];
     /// Provide the raw encoded bytes for hashing purposes which
     /// includes the cleartext portition that will be encrypted
+    /// except the wrapped handshake header which must be hashed
+    /// separately through wrapped_hash_header_ref due to
+    /// to-be-encrypted records being "wrapped" over TLS 1.2 appdata.
     fn as_hashing_context_ref(&self) -> &[u8];
     /// Provide the full raw encoded bytes including placeholder
     /// tag and record headers
     fn as_encoded_bytes(&self) -> &[u8];
+}
+
+/// Server handshake finished is provided through trait implementation
+pub trait ServerHandshakeFinishedBuilder {
+    /// Provide the hash
+    fn hash_finished(&self) -> &[u8];
 }
 
 /// Server certificate verification is provided through trait implementation
@@ -59,7 +77,7 @@ pub trait ServerCertificateVerifyBuilder {
     /// Sign the current handshake hash with the used signature
     /// algorithm and the server private key used to generate the public key
     /// within the server certificate.
-    fn sign_cert_verify(&self) -> [u8; 64];
+    fn sign_cert_verify(&self) -> &[u8];
 }
 
 /// Server certificates are provided through trait implementation

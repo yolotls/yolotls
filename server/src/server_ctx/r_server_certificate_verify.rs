@@ -22,13 +22,42 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerCertific
         [0x04, 0x03]
     }
     #[inline]
-    fn sign_cert_verify(&self) -> [u8; 64] {
+    fn sign_cert_verify(&self) -> &[u8] {
+        match self.signature_cert_verify {
+            Some(ref s) => &s[..self.signature_cert_verify_len],
+            None => &[],
+        }
+    }
+}
+
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
+    #[inline]
+    pub(crate) fn do_server_certificate_verify<L: TlsLeft, T: CryptoSha256TranscriptProcessor>(
+        &mut self,
+        left: &mut L,
+        transcript: &mut T,
+    ) -> Result<(), TlsServerCtxError> {
+        let key: [u8; 32] = match self.handshake_secret_key {
+            None => return Err(TlsServerCtxError::MissingHandshakeKey),
+            Some(k) => k,
+        };
+
+        let nonce: [u8; 12] = match self.handshake_server_iv {
+            None => return Err(TlsServerCtxError::MissingHandshakeIv),
+            Some(ref mut n) => match n.use_and_incr() {
+                Some(cur) => cur,
+                None => return Err(TlsServerCtxError::ExhaustedIv),
+            },
+        };
+
         use p256::ecdsa::{signature::Signer, Signature, SigningKey};
-        let key = self.config.server_private_key();
+        let raw_signing_key = self.config.server_private_key();
+        let signing_key = SigningKey::try_from(raw_signing_key).unwrap();
 
-        println!("Key len <{}> is = {}", key.len(), hex::encode(key));
-
-        let signing_key = SigningKey::try_from(key).unwrap();
+        // snapshot transcript hash for cert verify
+        let ctx_transcript = transcript.sha256_fork();
+        let ctx_hash_input = ctx_transcript.sha256_finalize();
+        self.cert_verify_hash = Some(ctx_hash_input);
 
         let h = match self.cert_verify_hash {
             Some(h) => h,
@@ -53,9 +82,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerCertific
             0x54, 0x4c, 0x53, 0x20, 0x31, 0x2e, 0x33, 0x2c, 0x20, 0x73, 0x65, 0x72, 0x76, 0x65,
             0x72, 0x20, 0x43, 0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65, 0x56,
             0x65, 0x72, 0x69, 0x66, 0x79, // content separator \0 (1 byte)
-            0x00,
-            // 32 bytes hash
-            //0101010101010101010101010101010101010101010101010101010101010101
+            0x00, // 32 bytes hash
             h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], h[8], h[9], h[10], h[11], h[12], h[13],
             h[14], h[15], h[16], h[17], h[18], h[19], h[20], h[21], h[22], h[23], h[24], h[25],
             h[26], h[27], h[28], h[29], h[30], h[31],
@@ -63,39 +90,17 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerCertific
 
         let signature: Signature = signing_key.sign(&verify);
 
-        let bytes = signature.to_bytes();
-        println!("Signature length {}", bytes.len());
+        let der_bytes = signature.to_der();
 
-        bytes.into()
-    }
-}
+        let bytes = der_bytes.as_bytes();
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
-    #[inline]
-    pub(crate) fn do_server_certificate_verify<L: TlsLeft, T: CryptoSha256TranscriptProcessor>(
-        &mut self,
-        left: &mut L,
-        transcript: &mut T,
-    ) -> Result<(), TlsServerCtxError> {
-        let key: [u8; 32] = match self.handshake_secret_key {
-            None => return Err(TlsServerCtxError::MissingHandshakeKey),
-            Some(k) => k,
-        };
+        let mut c_bytes: [u8; 100] = [0; 100];
+        c_bytes[0..bytes.len()].copy_from_slice(&bytes);
 
-        let nonce: [u8; 12] = match self.handshake_server_iv {
-            None => return Err(TlsServerCtxError::MissingHandshakeIv),
-            Some(ref mut n) => match n.use_and_incr() {
-                Some(cur) => cur,
-                None => return Err(TlsServerCtxError::ExhaustedIv),
-            },
-        };
+        self.signature_cert_verify = Some(c_bytes);
+        self.signature_cert_verify_len = bytes.len();
 
         let cipher = Crypto::aead_chaha20poly1305(&key);
-
-        // snapshot transcript hash for cert verify
-        let ctx_transcript = transcript.sha256_fork();
-        let ctx_hash_input = ctx_transcript.sha256_finalize();
-        self.cert_verify_hash = Some(ctx_hash_input);
 
         let mut server_certificate_verify =
             WrappedStaticRecordBuilder::<8192>::server_certificate_verify(self)
@@ -113,11 +118,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             panic!("No disjoint.");
         };
 
-        //println!("Preparing to send {}", hex::encode(server_certificate_verify.as_encoded_bytes()));
-
         server_certificate_verify.set_auth_tag(&tag);
-
-        //println!("Tagged to send {}", hex::encode(server_certificate_verify.as_encoded_bytes()));
 
         left.send_record_out(server_certificate_verify.as_encoded_bytes());
         Ok(())

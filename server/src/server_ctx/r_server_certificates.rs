@@ -55,6 +55,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
         let mut server_certificates = WrappedStaticRecordBuilder::<8192>::server_certificates(self)
             .map_err(TlsServerCtxError::Builder)?;
 
+        //transcript.sha256_update(&server_certificates.wrapped_hash_header_ref());
+        println!(
+            "Server Certificates hash ctx len = {}",
+            server_certificates.as_hashing_context_ref().len()
+        );
         transcript.sha256_update(server_certificates.as_hashing_context_ref());
 
         let tag = if let Ok([additional_data, encrypt_payload]) =
@@ -67,12 +72,10 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             panic!("No disjoint.");
         };
 
-        //println!("Updating tag as = {}", hex::encode(tag));
-        //println!("Sending out = {}", hex::encode(server_certificates.as_encoded_bytes()));
+        //transcript.sha256_update(&server_certificates.wrapped_hash_header_ref());
+        //transcript.sha256_update(server_certificates.as_hashing_context_ref());
 
         server_certificates.set_auth_tag(&tag);
-
-        //println!("Sending out = {}", hex::encode(server_certificates.as_encoded_bytes()));
 
         left.send_record_out(server_certificates.as_encoded_bytes());
         Ok(())

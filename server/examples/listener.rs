@@ -32,7 +32,7 @@ impl TlsServerCtxConfig for MyTlsServerCfg {
     }
     #[inline]
     fn server_cert_chain(&self) -> &[u8] {
-        &[1, 0]
+        &[0, 1]
     }
     #[inline]
     fn server_cert(&self, id: u8) -> &[u8] {
@@ -108,6 +108,8 @@ fn handle_client(mut stream: TcpStream) {
     let key_info = EcPrivateKey::try_from(key_data_der.as_ref()).unwrap();
     println!("private_key length = {}", key_info.private_key.len());
     let key_data = key_info.private_key.to_vec();
+
+    println!("Public Key: {}", hex::encode(key_info.public_key.unwrap()));
 
     let (ca_type_label, ca_data) = pem_rfc7468::decode_vec(&ca_vec).unwrap();
     println!("Loaded CA<{:?}> Len<{}>", ca_type_label, ca_data.len());

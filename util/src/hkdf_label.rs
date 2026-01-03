@@ -47,6 +47,16 @@ impl HkdfLabelSha256 {
         r
     }
     #[inline]
+    pub fn tls13_hanshake_finished(hash_len: u8) -> [u8; 18] {
+        //b"tls13 finished"
+        let r: [u8; 18] = [
+            0, hash_len, 14, 0x74, 0x6C, 0x73, 0x31, 0x33, 0x20, 0x66, 0x69, 0x6E, 0x69, 0x73,
+            0x68, 0x65, 0x64, 0x00,
+        ];
+        assert_eq!(&r[3..17], b"tls13 finished");
+        r
+    }
+    #[inline]
     pub fn tls13_secret_key(key_len: u8) -> [u8; 13] {
         //b"tls13 key"
         let r: [u8; 13] = [0, key_len, 9, 116, 108, 115, 49, 51, 32, 107, 101, 121, 0];
