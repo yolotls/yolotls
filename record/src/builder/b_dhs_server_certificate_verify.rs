@@ -1,11 +1,11 @@
-//! EncryptedExtensions Builder Buffer
+//! Server Certificate Builder Buffer
 
 use crate::error::BuilderError;
 
-use ytls_traits::EncryptedExtensionsBuilder;
+use ytls_traits::ServerCertificateVerifyBuilder;
 
 #[derive(Debug, PartialEq)]
-pub struct BufStaticEncryptedExtensions<const N: usize> {
+pub struct BufStaticServerCertificateVerify<const N: usize> {
     bytes_buf: [u8; N],
     bytes_len: usize,
     cipher_start: usize,
@@ -16,7 +16,7 @@ pub struct BufStaticEncryptedExtensions<const N: usize> {
 
 use super::formatter::EncoderU16;
 
-impl<const N: usize> BufStaticEncryptedExtensions<N> {
+impl<const N: usize> BufStaticServerCertificateVerify<N> {
     pub(crate) fn set_auth_tag(&mut self, new_tag: &[u8; 16]) -> () {
         self.bytes_buf[self.auth_tag_start..self.auth_tag_end].copy_from_slice(new_tag);
     }
@@ -44,8 +44,8 @@ impl<const N: usize> BufStaticEncryptedExtensions<N> {
         &self.bytes_buf[0..self.bytes_len]
     }
     #[inline]
-    pub(crate) fn static_from_untyped<S: EncryptedExtensionsBuilder>(
-        _s: &S,
+    pub(crate) fn static_from_untyped<S: ServerCertificateVerifyBuilder>(
+        s: &S,
     ) -> Result<Self, BuilderError> {
         let mut cursor = EncoderU16::<N>::new();
         let mut buffer: [u8; N] = [0; N];
@@ -69,37 +69,37 @@ impl<const N: usize> BufStaticEncryptedExtensions<N> {
         let idx_encrypt_start = 5;
 
         //-----------------------------------
-        // Handshake record metadata +8 bytes
-        // Bytes 5..12
+        // Handshake record metadata +4 bytes
+        // Bytes 5..9
         //-----------------------------------
-        cursor.try_skip_only(6)?;
-        // 0x0b = Handshake type Encrypted Extensions
-        buffer[5] = 0x08;
+        cursor.try_skip_only(4)?;
+        // 0x0b = Handshake type certificate verify
+        buffer[5] = 0x0f;
         let idx_hs_payload_len_start = 6;
         // ,7,8 (u24 BE) cont idx_payload_len_start
-        // 9 = 0 bytes of request context
-        let idx_extensions_total_len_start = 10;
-        // ,11,12 (u24 BE) cont idx_certs_total_len_start
 
-        // TODO: empty.
-        let total_extensions_len = 0;
+        // 9, 10
+        let algorithm: [u8; 2] = s.signature_algorithm();
+        cursor.try_fill_with(&mut buffer, &algorithm)?;
 
-        //--------------------------------------
-        // Total Extensions Length including headers
-        //--------------------------------------
-        let extensions_total_len_u32_b: [u8; 4] = (total_extensions_len as u32).to_be_bytes();
-        if extensions_total_len_u32_b[0] != 0 {
+        let signature = s.sign_cert_verify();
+        if signature.len() > u16::MAX as usize {
             return Err(BuilderError::Overflow);
         }
-        buffer[idx_extensions_total_len_start..idx_extensions_total_len_start + 3]
-            .copy_from_slice(&extensions_total_len_u32_b[1..4]);
+        let s_len_bytes: [u8; 2] = (signature.len() as u16).to_be_bytes();
+
+        // 11, 12
+        cursor.try_fill_with(&mut buffer, &s_len_bytes)?;
+        // 13..
+        cursor.try_fill_with(&mut buffer, &signature)?;
 
         //----------------------------------------
         // Total handshake length
-        // = total extensions length
-        //    + handshake headers 2 bytes
+        // =  + signature length  2 bytes
+        //    + signature type    2 bytes
+        //    + signature lenghth X bytes
         //------------------ ---------------------
-        let hs_total_len_u32_b: [u8; 4] = ((total_extensions_len + 2) as u32).to_be_bytes();
+        let hs_total_len_u32_b: [u8; 4] = ((signature.len() + 4) as u32).to_be_bytes();
         if hs_total_len_u32_b[0] != 0 {
             return Err(BuilderError::Overflow);
         }
@@ -108,14 +108,14 @@ impl<const N: usize> BufStaticEncryptedExtensions<N> {
 
         //----------------------------------------
         // Total appdata length (for ciphertext)
-        //    + handshake headers 6 bytes     +6
+        //    + handshake headers 8 bytes     +8
         //    + auth tag (aead) 16 bytes     +16
         //    + record type is handshake      +1
         //   ------------------------------------
-        //                          totals    23
-        //    + total certs w/ hdrs length    +X
+        //                          totals    25
+        //    + signature.length              +X
         //------------------ ---------------------
-        let total_app_data_len = 23 + total_extensions_len;
+        let total_app_data_len = 25 + signature.len();
 
         if total_app_data_len > u16::MAX as usize {
             return Err(BuilderError::Overflow);
@@ -145,28 +145,44 @@ impl<const N: usize> BufStaticEncryptedExtensions<N> {
     }
 }
 
+/*
 #[cfg(test)]
-mod test_ok_smol_barebones {
+mod test_ok_basic_1cert_verify {
     use super::*;
     use hex_literal::hex;
-    use ytls_traits::EncryptedExtensionsBuilder;
+    use ytls_traits::ServerCertificateVerifyBuilder;
 
     struct Tester;
 
-    impl EncryptedExtensionsBuilder for Tester {}
+    impl ServerCertificateVerifyBuilder for Tester {
+        fn signature_algorithm(&self) -> [u8; 2] {
+            [0x04, 0x03]
+        }
+        fn sign_cert_verify(&self) -> &[u8] {
+            &[0x69, 0x69, 0x69]
+        }
+    }
 
     //----------------------------------------------
     // Expected Wrapped Record header +5 bytes
     //----------------------------------------------
     // 17    - AppData record type (Wrapped)
     // 03 03 - Legacy TLS 1.2
-    // 00 17 - Length 23 bytes follows
+    // XX XX - Length X follows
     //----------------------------------------------
-    // Handshake headers +6 bytes
+    // Handshake headers +8 bytes
     //----------------------------------------------
-    // 08       - Handshake: Encrypted Extensions
-    // 00 00 02 - 2 bytes follows
-    // 00 00    - Zero length encrypted extensions
+    // 0f       - Handshake message type: CertificateVerify
+    // 00 XX XX - Length: X bytes Certificate message payload
+    //----------------------------------------------
+    // Certificate Verify Lengths
+    //
+    // ---------------------
+    // X total
+    //---------------------------------------------
+    // Certificate Verify
+    //---------------------------------------------
+    // 04 03    - ecdsa_secp256r1_sha256
     //---------------------------------------------
     // Wrapped inner record type +1 byte
     //---------------------------------------------
@@ -180,14 +196,13 @@ mod test_ok_smol_barebones {
     fn static_8192_basic() {
         let tester = Tester;
 
-        let b = BufStaticEncryptedExtensions::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticServerCertificateVerify::<8192>::static_from_untyped(&tester).unwrap();
 
         let h = hex::encode(b.as_encoded_bytes());
 
-        let expected_lit = hex!(
-            "17 03 03 00 17 08 00 00 02 00 00 16 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-        );
+        let expected_lit = hex!("17 03 03 03 43");
 
         assert_eq!(hex::encode(expected_lit), h);
     }
 }
+*/

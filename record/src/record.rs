@@ -49,6 +49,7 @@ pub struct Record<'r> {
 /// Content of the underlying Record
 #[derive(Debug)]
 pub enum Content<'r> {
+    ChangeCipherSpec,
     /// Record is ApplicationData
     ApplicationData,
     /// Record is a Handshake
@@ -97,7 +98,10 @@ impl<'r> Record<'r> {
                 let r_next = &rest[usize::from(hdr.record_length)..];
                 (Content::ApplicationData, r_next)
             }
-            _ => todo!("Record {:?} not implemented.", hdr.content_type),
+            ContentType::ChangeCipherSpec => {
+                let r_next = &rest[usize::from(hdr.record_length)..];
+                (Content::ChangeCipherSpec, r_next)
+            }
         };
 
         Ok((

@@ -44,6 +44,8 @@ pub trait Tls13KeyScheduleHandshakeSha256 {
     fn handshake_server_iv(&self, _iv: &mut [u8]) -> ();
     /// Expands Nonce IV for the Client AEAD sender.
     fn handshake_client_iv(&self, _iv: &mut [u8]) -> ();
+    /// Expands Key for the Server to finish Handshake
+    fn handshake_server_finished_key(&self, _key: &mut [u8]) -> ();
     /// Upon finishing handshake, proceed to Master Key schedule with the final hash of the hanshakes.
     ///
     /// ## Hash Input

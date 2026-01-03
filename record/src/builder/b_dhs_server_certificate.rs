@@ -32,8 +32,13 @@ impl<const N: usize> BufStaticServerCertificates<N> {
     pub(crate) fn as_ciphertext_mut(&mut self) -> &mut [u8] {
         &mut self.bytes_buf[self.cipher_start..self.cipher_end]
     }
+    pub(crate) fn wrapped_hash_header_ref(&self) -> [u8; 5] {
+        let len = self.cipher_end - 1 - self.cipher_start;
+        let len_u32_b: [u8; 4] = (len as u32).to_be_bytes();
+        [0x16, 3, 3, len_u32_b[2], len_u32_b[3]]
+    }
     pub(crate) fn as_hashing_context_ref(&self) -> &[u8] {
-        &self.bytes_buf[self.cipher_start..self.cipher_end]
+        &self.bytes_buf[self.cipher_start..self.cipher_end - 1]
     }
     pub(crate) fn as_encoded_bytes(&self) -> &[u8] {
         &self.bytes_buf[0..self.bytes_len]
@@ -53,13 +58,14 @@ impl<const N: usize> BufStaticServerCertificates<N> {
         buffer[0] = 0x17;
         buffer[1] = 3;
         buffer[2] = 3;
-        let idx_appdata_len_start = 3; // ,4
-                                       //-------------------------------
-                                       // Cleartext <> Ciphertext Start
-                                       // Bytes 0..4 Cleartext
-                                       // Bytes 5..X Ciphertext
-                                       // Bytes X.+16 Auth Tag
-                                       //-------------------------------
+        // ,4
+        let idx_appdata_len_start = 3;
+        //-------------------------------
+        // Cleartext <> Ciphertext Start
+        // Bytes 0..4 Cleartext
+        // Bytes 5..X Ciphertext
+        // Bytes X.+16 Auth Tag
+        //-------------------------------
         let idx_encrypt_start = 5;
 
         //-----------------------------------

@@ -12,5 +12,7 @@ mod b_server_hello;
 
 mod b_dhs_encrypted_extensions;
 mod b_dhs_server_certificate;
+mod b_dhs_server_certificate_verify;
+mod b_dhs_server_handshake_finished;
 
 mod formatter;

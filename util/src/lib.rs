@@ -36,3 +36,7 @@ pub use hkdf_label::*;
 mod nonce;
 #[doc(inline)]
 pub use nonce::*;
+
+mod static_queue;
+#[doc(inline)]
+pub use static_queue::*;

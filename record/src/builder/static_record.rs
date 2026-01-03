@@ -6,7 +6,9 @@ use crate::WrappedRecordBuffer;
 
 use ytls_traits::EncryptedExtensionsBuilder;
 use ytls_traits::HandshakeBuilder;
+use ytls_traits::ServerCertificateVerifyBuilder;
 use ytls_traits::ServerCertificatesBuilder;
+use ytls_traits::ServerHandshakeFinishedBuilder;
 use ytls_traits::ServerHelloBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
 
@@ -29,6 +31,21 @@ pub struct WrappedStaticRecordBuilder<const N: usize> {
 
 impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     type Error = BuilderError;
+    /// Construct handshake server finished
+    fn server_handshake_finished<S: ServerHandshakeFinishedBuilder>(
+        s: &S,
+    ) -> Result<Self, Self::Error> {
+        Ok(
+            Self {
+                rec_buf:
+                    WrappedRecordBuffer::<N>::ServerHandshakeFinished(
+                        super::b_dhs_server_handshake_finished::BufStaticServerHandshakeFinished::<
+                            N,
+                        >::static_from_untyped(s)?,
+                    ),
+            },
+        )
+    }
     /// Construct handshake server certificate/s.
     fn server_certificates<S: ServerCertificatesBuilder>(s: &S) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -36,6 +53,21 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
                 super::b_dhs_server_certificate::BufStaticServerCertificates::<N>::static_from_untyped(s)?,
             ),
         })
+    }
+    /// Construct handshake server certificate verify.
+    fn server_certificate_verify<S: ServerCertificateVerifyBuilder>(
+        s: &S,
+    ) -> Result<Self, Self::Error> {
+        Ok(
+            Self {
+                rec_buf:
+                    WrappedRecordBuffer::<N>::ServerCertificateVerify(
+                        super::b_dhs_server_certificate_verify::BufStaticServerCertificateVerify::<
+                            N,
+                        >::static_from_untyped(s)?,
+                    ),
+            },
+        )
     }
     /// Construct handshake encrypted extensions.
     fn encrypted_extensions<S: EncryptedExtensionsBuilder>(s: &S) -> Result<Self, Self::Error> {
@@ -49,35 +81,54 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     fn as_disjoint_mut_for_aead(&mut self) -> Result<[&mut [u8]; 2], Self::Error> {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref mut s) => s.as_disjoint_mut_for_aead(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.as_disjoint_mut_for_aead(),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.as_disjoint_mut_for_aead(),
+            WrappedRecordBuffer::ServerHandshakeFinished(ref mut s) => s.as_disjoint_mut_for_aead(),
         }
     }
     #[inline]
     fn set_auth_tag(&mut self, new_tag: &[u8; 16]) {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref mut s) => s.set_auth_tag(new_tag),
+            WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.set_auth_tag(new_tag),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.set_auth_tag(new_tag),
+            WrappedRecordBuffer::ServerHandshakeFinished(ref mut s) => s.set_auth_tag(new_tag),
         }
     }
     #[inline]
     fn as_ciphertext_mut(&mut self) -> &mut [u8] {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref mut s) => s.as_ciphertext_mut(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.as_ciphertext_mut(),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.as_ciphertext_mut(),
+            WrappedRecordBuffer::ServerHandshakeFinished(ref mut s) => s.as_ciphertext_mut(),
+        }
+    }
+    #[inline]
+    fn wrapped_hash_header_ref(&self) -> [u8; 5] {
+        match self.rec_buf {
+            WrappedRecordBuffer::ServerCertificates(ref s) => s.wrapped_hash_header_ref(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref s) => s.wrapped_hash_header_ref(),
+            WrappedRecordBuffer::EncryptedExtensions(ref s) => s.wrapped_hash_header_ref(),
+            WrappedRecordBuffer::ServerHandshakeFinished(ref s) => s.wrapped_hash_header_ref(),
         }
     }
     #[inline]
     fn as_hashing_context_ref(&self) -> &[u8] {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref s) => &s.as_hashing_context_ref(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref s) => &s.as_hashing_context_ref(),
             WrappedRecordBuffer::EncryptedExtensions(ref s) => &s.as_hashing_context_ref(),
+            WrappedRecordBuffer::ServerHandshakeFinished(ref s) => &s.as_hashing_context_ref(),
         }
     }
     #[inline]
     fn as_encoded_bytes(&self) -> &[u8] {
         match self.rec_buf {
             WrappedRecordBuffer::ServerCertificates(ref s) => &s.as_encoded_bytes(),
+            WrappedRecordBuffer::ServerCertificateVerify(ref s) => &s.as_encoded_bytes(),
             WrappedRecordBuffer::EncryptedExtensions(ref s) => &s.as_encoded_bytes(),
+            WrappedRecordBuffer::ServerHandshakeFinished(ref s) => &s.as_encoded_bytes(),
         }
     }
 }
