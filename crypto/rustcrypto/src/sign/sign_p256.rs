@@ -3,6 +3,9 @@
 use p256::ecdsa::{signature::Signer, Signature, SigningKey};
 use ytls_traits::CryptoSignerP256Processor;
 
+#[cfg(feature = "zeroize")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
+
 /// RustCrypto ECDSA p256 Signer
 #[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct SignP256 {
