@@ -1429,12 +1429,15 @@ dependencies = [
  "hex",
  "hex-literal",
  "hkdf",
+ "hmac",
  "insta",
+ "p256",
  "rand_core",
  "rstest",
  "sha2",
  "x25519-dalek",
  "ytls-traits",
+ "zeroize",
 ]
 
 [[package]]
@@ -1443,14 +1446,11 @@ version = "0.0.1"
 dependencies = [
  "hex",
  "hex-literal",
- "hmac",
- "p256",
  "pem-rfc7468",
  "rand",
  "rand_core",
  "rstest",
  "sec1",
- "sha2",
  "ytls-extensions",
  "ytls-keys",
  "ytls-record",

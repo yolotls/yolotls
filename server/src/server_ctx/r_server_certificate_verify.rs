@@ -4,6 +4,7 @@ use crate::{TlsServerCtx, TlsServerCtxConfig, TlsServerCtxError};
 
 use ytls_traits::CryptoChaCha20Poly1305Processor;
 use ytls_traits::CryptoSha256TranscriptProcessor;
+use ytls_traits::CryptoSignerP256Processor;
 
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;
@@ -50,9 +51,8 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             },
         };
 
-        use p256::ecdsa::{signature::Signer, Signature, SigningKey};
-        let raw_signing_key = self.config.server_private_key();
-        let signing_key = SigningKey::try_from(raw_signing_key).unwrap();
+        //use p256::ecdsa::{signature::Signer, Signature, SigningKey};
+        //let signing_key = SigningKey::try_from(raw_signing_key).unwrap();
 
         // snapshot transcript hash for cert verify
         let ctx_transcript = transcript.sha256_fork();
@@ -88,17 +88,27 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             h[26], h[27], h[28], h[29], h[30], h[31],
         ];
 
-        let signature: Signature = signing_key.sign(&verify);
+        //let signature: Signature = signing_key.sign(&verify);
 
-        let der_bytes = signature.to_der();
+        //let der_bytes = signature.to_der();
 
-        let bytes = der_bytes.as_bytes();
+        //let bytes = der_bytes.as_bytes();
 
+        //c_bytes[0..bytes.len()].copy_from_slice(&bytes);
+
+        let raw_signing_key = self.config.server_private_key();
+        let signer = match Crypto::sign_p256_init(raw_signing_key) {
+            Some(signer) => signer,
+            None => return Err(TlsServerCtxError::PrivateKey),
+        };
         let mut c_bytes: [u8; 100] = [0; 100];
-        c_bytes[0..bytes.len()].copy_from_slice(&bytes);
+        let c_bytes_len = match signer.sign_p256(&verify, &mut c_bytes) {
+            None => return Err(TlsServerCtxError::Crypto),
+            Some(out_len) => out_len,
+        };
 
         self.signature_cert_verify = Some(c_bytes);
-        self.signature_cert_verify_len = bytes.len();
+        self.signature_cert_verify_len = c_bytes_len;
 
         let cipher = Crypto::aead_chaha20poly1305(&key);
 

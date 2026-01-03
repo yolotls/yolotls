@@ -20,4 +20,8 @@ pub enum TlsServerCtxError {
     MissingHandshakeKey,
     /// Iv is exhausted for any further record generation
     ExhaustedIv,
+    /// Cryptography provider related error. Usually a bug.
+    Crypto,
+    /// Private Key related error, typically wrong length.
+    PrivateKey,
 }
