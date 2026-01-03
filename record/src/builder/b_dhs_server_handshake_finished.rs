@@ -189,7 +189,7 @@ mod test_ok_basic_hash_finished {
 
         let h = hex::encode(b.as_encoded_bytes());
 
-        let expected_lit = hex!("17030300191400000400022a2a1600000000000000000000000000000000");
+        let expected_lit = hex!("1703030017140000022a2a1600000000000000000000000000000000");
 
         assert_eq!(hex::encode(expected_lit), h);
     }

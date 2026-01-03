@@ -1409,20 +1409,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ytls-pki"
-version = "0.0.1"
-dependencies = [
- "const-oid",
- "der",
- "hex",
- "hex-literal",
- "pem-rfc7468",
- "rstest",
- "ytls-traits",
- "ytls-util",
-]
-
-[[package]]
 name = "ytls-record"
 version = "0.0.1"
 dependencies = [
