@@ -88,7 +88,7 @@ impl HkdfLabelSha256 {
         r[21] = 32;
         r[22..54].copy_from_slice(ctx);
         r
-    }    
+    }
     #[inline]
     fn _tls13_handshake_traffic(which: ServerOrClient, ctx: &[u8; 32]) -> [u8; 54] {
         let prefix: [u8; 18] = match which {
@@ -120,7 +120,7 @@ impl HkdfLabelSha256 {
     #[inline]
     pub fn tls13_server_application_traffic(ctx: &[u8; 32]) -> [u8; 54] {
         Self::_tls13_application_traffic(ServerOrClient::Server, ctx)
-    }    
+    }
 }
 
 #[cfg(test)]
