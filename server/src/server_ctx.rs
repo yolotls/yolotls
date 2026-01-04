@@ -222,8 +222,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                         self.do_server_certificate_verify(l, &mut transcript_more)?;
 
                         self.do_server_handshake_finished(l, &mut transcript_more)?;
-
-                        
                     }
                 }
             }

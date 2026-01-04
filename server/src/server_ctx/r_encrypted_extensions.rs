@@ -54,7 +54,9 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                 .encrypt_in_place(&nonce, &additional_data, encrypt_payload.as_mut())
                 .unwrap()
         } else {
-            return Err(TlsServerCtxError::Bug("Disjoint for AEAD failed at certificate verify."));
+            return Err(TlsServerCtxError::Bug(
+                "Disjoint for AEAD failed at certificate verify.",
+            ));
         };
 
         encrypted_extensions.set_auth_tag(&tag);
