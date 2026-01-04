@@ -26,8 +26,6 @@ use ytls_traits::Tls13KeyScheduleDerivedSha256;
 use ytls_traits::Tls13KeyScheduleHandshakeSha256;
 use ytls_traits::Tls13KeyScheduleInit;
 
-use ytls_traits::CryptoChaCha20Poly1305Processor;
-
 use rand_core::CryptoRng;
 
 use crate::TlsServerCtxConfig;

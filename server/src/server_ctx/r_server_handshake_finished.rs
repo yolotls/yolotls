@@ -10,6 +10,7 @@ use ytls_traits::TlsLeft;
 
 use ytls_record::WrappedStaticRecordBuilder;
 use ytls_traits::CryptoChaCha20Poly1305Processor;
+use ytls_traits::CryptoSha256HmacProcessor;
 use ytls_traits::ServerHandshakeFinishedBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
 
@@ -58,15 +59,12 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             ],
         };
 
-        use hmac::{Hmac, KeyInit, Mac};
-        use sha2::Sha256;
-        let mut mac =
-            Hmac::<Sha256>::new_from_slice(hs_key).expect("HMAC can take key of any size");
-        mac.update(&ctx_hash_input);
+        let mut mac = Crypto::hmac_sha256_init_with_key(hs_key);
+        mac.hmac_sha256_update(&ctx_hash_input);
 
-        let finished_hmac = mac.finalize();
+        let finished_hmac = mac.hmac_sha256_finalize();
 
-        self.hash_finished = Some(finished_hmac.into_bytes().into());
+        self.hash_finished = Some(finished_hmac);
 
         let mut server_handshake_finished =
             WrappedStaticRecordBuilder::<8192>::server_handshake_finished(self)
