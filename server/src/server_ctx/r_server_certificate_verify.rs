@@ -51,9 +51,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             },
         };
 
-        //use p256::ecdsa::{signature::Signer, Signature, SigningKey};
-        //let signing_key = SigningKey::try_from(raw_signing_key).unwrap();
-
         // snapshot transcript hash for cert verify
         let ctx_transcript = transcript.sha256_fork();
         let ctx_hash_input = ctx_transcript.sha256_finalize();
@@ -61,7 +58,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
 
         let h = match self.cert_verify_hash {
             Some(h) => h,
-            None => panic!("No hash."),
+            None => return Err(TlsServerCtxError::Bug("Missing certificate verify hash.")),
         };
 
         // +64 bytes of 0x20 (30)
@@ -87,14 +84,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
             h[14], h[15], h[16], h[17], h[18], h[19], h[20], h[21], h[22], h[23], h[24], h[25],
             h[26], h[27], h[28], h[29], h[30], h[31],
         ];
-
-        //let signature: Signature = signing_key.sign(&verify);
-
-        //let der_bytes = signature.to_der();
-
-        //let bytes = der_bytes.as_bytes();
-
-        //c_bytes[0..bytes.len()].copy_from_slice(&bytes);
 
         let raw_signing_key = self.config.server_private_key();
         let signer = match Crypto::sign_p256_init(raw_signing_key) {
@@ -125,7 +114,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                 .encrypt_in_place(&nonce, &additional_data, encrypt_payload.as_mut())
                 .unwrap()
         } else {
-            panic!("No disjoint.");
+            return Err(TlsServerCtxError::Bug("Disjoint for AEAD failed at certificate verify."));
         };
 
         server_certificate_verify.set_auth_tag(&tag);
