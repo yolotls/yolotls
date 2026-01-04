@@ -27,6 +27,11 @@ impl HkdfLabelSha256 {
             0x65, 0x72, 00,
         ]
     }
+    /// Used for "derived" Application keys phase (same as early_secret feeding handshake)
+    #[inline]
+    pub fn tls13_derived_secret_sha256() -> [u8; 49] {
+        Self::tls13_early_secret_sha256()
+    }
     /// Early secret has empty SHA256 ctx given no PSK
     #[inline]
     pub fn tls13_early_secret_sha256() -> [u8; 49] {
@@ -70,6 +75,21 @@ impl HkdfLabelSha256 {
         assert_eq!(&r[3..11], b"tls13 iv");
         r
     }
+    #[inline]
+    fn _tls13_application_traffic(which: ServerOrClient, ctx: &[u8; 32]) -> [u8; 54] {
+        let prefix: [u8; 18] = match which {
+            ServerOrClient::Client => *b"tls13 c ap traffic",
+            ServerOrClient::Server => *b"tls13 s ap traffic",
+        };
+        let mut r: [u8; 54] = [0; 54];
+        r[1] = 32;
+        r[2] = 18;
+        r[3..21].copy_from_slice(&prefix);
+        r[21] = 32;
+        r[22..54].copy_from_slice(ctx);
+        r
+    }
+    #[inline]
     fn _tls13_handshake_traffic(which: ServerOrClient, ctx: &[u8; 32]) -> [u8; 54] {
         let prefix: [u8; 18] = match which {
             ServerOrClient::Client => *b"tls13 c hs traffic",
@@ -91,6 +111,15 @@ impl HkdfLabelSha256 {
     #[inline]
     pub fn tls13_server_handshake_traffic(ctx: &[u8; 32]) -> [u8; 54] {
         Self::_tls13_handshake_traffic(ServerOrClient::Server, ctx)
+    }
+    //// Application traffic uses handshakes transcript hash for ctx
+    #[inline]
+    pub fn tls13_client_application_traffic(ctx: &[u8; 32]) -> [u8; 54] {
+        Self::_tls13_application_traffic(ServerOrClient::Client, ctx)
+    }
+    #[inline]
+    pub fn tls13_server_application_traffic(ctx: &[u8; 32]) -> [u8; 54] {
+        Self::_tls13_application_traffic(ServerOrClient::Server, ctx)
     }
 }
 

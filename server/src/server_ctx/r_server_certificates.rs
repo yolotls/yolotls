@@ -55,11 +55,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
         let mut server_certificates = WrappedStaticRecordBuilder::<8192>::server_certificates(self)
             .map_err(TlsServerCtxError::Builder)?;
 
-        //transcript.sha256_update(&server_certificates.wrapped_hash_header_ref());
-        println!(
-            "Server Certificates hash ctx len = {}",
-            server_certificates.as_hashing_context_ref().len()
-        );
         transcript.sha256_update(server_certificates.as_hashing_context_ref());
 
         let tag = if let Ok([additional_data, encrypt_payload]) =
@@ -69,11 +64,10 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
                 .encrypt_in_place(&nonce, &additional_data, encrypt_payload.as_mut())
                 .unwrap()
         } else {
-            panic!("No disjoint.");
+            return Err(TlsServerCtxError::Bug(
+                "Disjoint for AEAD failed at certificate verify.",
+            ));
         };
-
-        //transcript.sha256_update(&server_certificates.wrapped_hash_header_ref());
-        //transcript.sha256_update(server_certificates.as_hashing_context_ref());
 
         server_certificates.set_auth_tag(&tag);
 
