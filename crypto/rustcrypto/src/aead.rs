@@ -48,8 +48,7 @@ impl CryptoChaCha20Poly1305Processor for AeadChaCha20Poly1305 {
         tag: &[u8; 16],
     ) -> Result<(), AeadError> {
         let nonce: Nonce = (*nonce).into();
-        self
-            .cipher
+        self.cipher
             .decrypt_inout_detached(&nonce, &additional_data, to_decrypt.into(), tag.into())
             .map_err(|_| AeadError::Opaque)?;
 

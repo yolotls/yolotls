@@ -25,9 +25,14 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshak
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshakeCtx<C, Crypto, Rng> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
+    ServerHandshakeCtx<C, Crypto, Rng>
+{
     #[inline]
-    pub(crate) fn do_server_handshake_finished<L: TlsLeftOut, T: CryptoSha256TranscriptProcessor>(
+    pub(crate) fn do_server_handshake_finished<
+        L: TlsLeftOut,
+        T: CryptoSha256TranscriptProcessor,
+    >(
         &mut self,
         left: &mut L,
         transcript: &mut T,

@@ -140,5 +140,5 @@ pub trait CryptoChaCha20Poly1305Processor {
         _additional_data: &[u8],
         _to_decrypt: &mut [u8],
         _tag: &[u8; 16],
-    ) -> Result<(), AeadError>;    
+    ) -> Result<(), AeadError>;
 }

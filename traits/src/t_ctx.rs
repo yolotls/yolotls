@@ -17,9 +17,13 @@ pub trait CtxHandshakeProcessor {
     /// Once handshake is finished, Some(..) is given for the application
     /// state machinery allowing de/encryption.
     #[must_use]
-    fn spin_handshake<Li: TlsLeftIn, Lo: TlsLeftOut>(&mut self, _left_in: &mut Li, _left_out: &mut Lo) -> Result<Option<HandshakeComplete>, Self::Error>;
+    fn spin_handshake<Li: TlsLeftIn, Lo: TlsLeftOut>(
+        &mut self,
+        _left_in: &mut Li,
+        _left_out: &mut Lo,
+    ) -> Result<Option<HandshakeComplete>, Self::Error>;
     /// Switch to Application context if and when handshake is complete consuming the current context.
-    #[must_use]    
+    #[must_use]
     fn switch_to_application(self) -> Option<impl CtxApplicationProcessor>;
 }
 
@@ -41,6 +45,11 @@ pub trait CtxApplicationProcessor {
     /// to provide the cleartext decrypted traffic to application.
     /// # Evolution
     /// Shutdown is provided when the state machinery can be shut down.
-    #[must_use]    
-    fn spin_application<Li: TlsLeftIn, Lo: TlsLeftOut, R: TlsRight>(&mut self, _left_in: &mut Li, _left_out: &mut Lo, _right: &mut R) -> Result<Option<ShutdownComplete>, Self::Error>;
+    #[must_use]
+    fn spin_application<Li: TlsLeftIn, Lo: TlsLeftOut, R: TlsRight>(
+        &mut self,
+        _left_in: &mut Li,
+        _left_out: &mut Lo,
+        _right: &mut R,
+    ) -> Result<Option<ShutdownComplete>, Self::Error>;
 }

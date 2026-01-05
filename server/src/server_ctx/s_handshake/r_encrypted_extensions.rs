@@ -19,7 +19,9 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> EncryptedExten
     // Empty for nowx
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshakeCtx<C, Crypto, Rng> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
+    ServerHandshakeCtx<C, Crypto, Rng>
+{
     #[inline]
     pub(crate) fn do_encrypted_extensions<L: TlsLeftOut, T: CryptoSha256TranscriptProcessor>(
         &mut self,

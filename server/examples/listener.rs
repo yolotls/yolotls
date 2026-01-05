@@ -46,12 +46,9 @@ impl TlsServerCtxConfig for MyTlsServerCfg {
 
 use ytls_traits::TlsRight;
 
-struct ApplicationIo {
-    
-}
+struct ApplicationIo {}
 
-impl TlsRight for ApplicationIo {
-}
+impl TlsRight for ApplicationIo {}
 
 struct NetworkIoOut {
     out_buf: Vec<u8>,
@@ -72,13 +69,13 @@ impl TlsLeftOut for NetworkIoOut {
 
 impl TlsLeftIn for NetworkIoIn {
     /*
-    fn left_bufs_mut(&mut self) -> (mut &[u8], &mut [u8]) {
-        (&self.in_buf[0..self.in_buf_len], &self,out_buf[self.out_buf_len..])
-    }
-    fn left_buf_mark_send_out(&mut self, len: usize) -> () {
-        println!("Sending out {len} bytes");
-        self.out_buf_len += len;
-}*/
+        fn left_bufs_mut(&mut self) -> (mut &[u8], &mut [u8]) {
+            (&self.in_buf[0..self.in_buf_len], &self,out_buf[self.out_buf_len..])
+        }
+        fn left_buf_mark_send_out(&mut self, len: usize) -> () {
+            println!("Sending out {len} bytes");
+            self.out_buf_len += len;
+    }*/
     fn left_buf_in(&self) -> &[u8] {
         &self.in_buf[0..self.in_buf_len]
     }
@@ -122,7 +119,7 @@ fn handle_client(mut stream: TcpStream) {
     };
 
     let mut app_buffers = ApplicationIo {};
-    
+
     let rng = rand::rng();
     let crypto_cfg = ytls_rustcrypto::RustCrypto;
 
@@ -175,9 +172,12 @@ fn handle_client(mut stream: TcpStream) {
         }
 
         network_in.in_buf_len += s;
-        
+
         println!("Read {s} bytes");
-        println!("Bytes = {}", hex::encode(&network_in.in_buf[b_start..b_start+s]));
+        println!(
+            "Bytes = {}",
+            hex::encode(&network_in.in_buf[b_start..b_start + s])
+        );
 
         // &buf[0..s]
         tls_ctx

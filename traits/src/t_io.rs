@@ -20,5 +20,4 @@ pub trait TlsLeftIn {
 }
 
 /// TLS State Machine Left (Cleartext) or "Application" I/O side
-pub trait TlsRight {
-}
+pub trait TlsRight {}

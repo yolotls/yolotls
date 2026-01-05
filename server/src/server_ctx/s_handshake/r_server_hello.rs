@@ -14,7 +14,9 @@ use ytls_traits::TlsLeftOut;
 
 use ytls_traits::CryptoSha256TranscriptProcessor;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshakeCtx<C, Crypto, Rng> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
+    ServerHandshakeCtx<C, Crypto, Rng>
+{
     #[inline]
     pub(crate) fn do_server_hello<L: TlsLeftOut, T: CryptoSha256TranscriptProcessor>(
         &mut self,

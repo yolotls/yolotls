@@ -21,10 +21,9 @@ impl<Config, Crypto, Rng> ServerApplicationCtx<Config, Crypto, Rng>
 where
     Config: TlsServerCtxConfig,
     Crypto: CryptoConfig,
-    Rng: CryptoRng,    
+    Rng: CryptoRng,
 {
 }
-
 
 impl<Config, Crypto, Rng> CtxApplicationProcessor for ServerApplicationCtx<Config, Crypto, Rng>
 where
@@ -34,7 +33,12 @@ where
 {
     type Error = TlsServerCtxError;
 
-    fn spin_application<Li: TlsLeftIn, Lo: TlsLeftOut, R: TlsRight>(&mut self, _li: &mut Li, _lo: &mut Lo, _right: &mut R) -> Result<Option<ShutdownComplete>, Self::Error> {
+    fn spin_application<Li: TlsLeftIn, Lo: TlsLeftOut, R: TlsRight>(
+        &mut self,
+        _li: &mut Li,
+        _lo: &mut Lo,
+        _right: &mut R,
+    ) -> Result<Option<ShutdownComplete>, Self::Error> {
         todo!()
     }
 }
