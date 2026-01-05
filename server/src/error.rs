@@ -24,4 +24,14 @@ pub enum TlsServerCtxError {
     Crypto,
     /// Private Key related error, typically wrong length.
     PrivateKey,
+    /// RFC 8446 TLS 1.3 Specified Error
+    Rfc8446(Rfc8446Error),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Rfc8446Error {
+    /// decrypt_error
+    Decrypt,
+    /// Unexpected record
+    Unexpected,
 }

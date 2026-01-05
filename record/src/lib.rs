@@ -32,3 +32,7 @@ pub use record::*;
 mod builder;
 #[doc(inline)]
 pub use builder::*;
+
+mod wrapped;
+#[doc(inline)]
+pub use wrapped::*;

@@ -140,6 +140,11 @@ impl<C: CryptoConfig> Tls13KeyScheduleHandshakeSha256 for Tls13KeysHandshakeSha2
         let key_label = HkdfLabelSha256::tls13_secret_iv(out_iv.len() as u8);
         let _ = hk.hkdf_sha256_expand(&key_label, out_iv);
     }
+    fn handshake_client_finished_key(&self, out_key: &mut [u8]) -> () {
+        let hk = self._client_prk();
+        let key_label = HkdfLabelSha256::tls13_hanshake_finished(out_key.len() as u8);
+        let _ = hk.hkdf_sha256_expand(&key_label, out_key);
+    }    
     fn handshake_server_finished_key(&self, out_key: &mut [u8]) -> () {
         let hk = self._server_prk();
         let key_label = HkdfLabelSha256::tls13_hanshake_finished(out_key.len() as u8);

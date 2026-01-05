@@ -1,6 +1,6 @@
-//! Encrypted Extensions handler for Server Ctx
+//! Encrypted Extensions handler for Server Handshake Ctx
 
-use crate::{TlsServerCtx, TlsServerCtxConfig, TlsServerCtxError};
+use crate::{ServerHandshakeCtx, TlsServerCtxConfig, TlsServerCtxError};
 
 use ytls_traits::CryptoChaCha20Poly1305Processor;
 use ytls_traits::CryptoSha256TranscriptProcessor;
@@ -8,14 +8,14 @@ use ytls_traits::CryptoSignerP256Processor;
 
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;
-use ytls_traits::TlsLeft;
+use ytls_traits::TlsLeftOut;
 
 use ytls_record::WrappedStaticRecordBuilder;
 use ytls_traits::ServerCertificateVerifyBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
 
 impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerCertificateVerifyBuilder
-    for TlsServerCtx<C, Crypto, Rng>
+    for ServerHandshakeCtx<C, Crypto, Rng>
 {
     #[inline]
     fn signature_algorithm(&self) -> [u8; 2] {
@@ -31,14 +31,14 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerCertific
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshakeCtx<C, Crypto, Rng> {
     #[inline]
-    pub(crate) fn do_server_certificate_verify<L: TlsLeft, T: CryptoSha256TranscriptProcessor>(
+    pub(crate) fn do_server_certificate_verify<L: TlsLeftOut, T: CryptoSha256TranscriptProcessor>(
         &mut self,
         left: &mut L,
         transcript: &mut T,
     ) -> Result<(), TlsServerCtxError> {
-        let key: [u8; 32] = match self.handshake_secret_key {
+        let key: [u8; 32] = match self.handshake_server_key {
             None => return Err(TlsServerCtxError::MissingHandshakeKey),
             Some(k) => k,
         };
