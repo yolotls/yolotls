@@ -7,14 +7,20 @@ use ytls_traits::{TlsLeftIn, TlsLeftOut, TlsRight};
 
 use ytls_traits::{CryptoConfig, CryptoRng};
 
+use ytls_util::Nonce12;
+
 /// yTLS Server Application Ctx
 pub struct ServerApplicationCtx<Config, Crypto, Rng> {
-    /// Downstream config implementation
     config: Config,
-    /// Downstream crypto implementation
     crypto: Crypto,
-    /// Downstream rng implementation
     rng: Rng,
+    // TODO: move these to vault or something and make sure
+    // they get zeroize'd
+    // Also handle different length depending on cipher suites
+    application_server_key: [u8; 32],
+    application_client_key: [u8; 32],
+    application_server_iv: Nonce12,
+    application_client_iv: Nonce12,
 }
 
 impl<Config, Crypto, Rng> ServerApplicationCtx<Config, Crypto, Rng>

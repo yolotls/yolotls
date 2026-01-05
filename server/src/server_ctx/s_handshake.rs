@@ -78,21 +78,26 @@ pub struct ServerHandshakeCtx<Config, Crypto, Rng> {
     client_session_len: usize,
     /// Curve25519 Public Key
     public_key: Option<[u8; 32]>,
+    /// Handshake secrets
+    // TODO: move these to vault provider and make sure they get zeroized
     /// Shared Secret
     shared_secret: Option<[u8; 32]>,
     /// Key Share for X25519
     key_share: [u8; 36],
-    /// Handshake secret key
     handshake_server_key: Option<[u8; 32]>,
     handshake_client_key: Option<[u8; 32]>,
-    application_server_key: Option<[u8; 32]>,
-    application_client_key: Option<[u8; 32]>,
     handshake_server_iv: Option<Nonce12>,
     handshake_client_iv: Option<Nonce12>,
-    application_server_iv: Option<Nonce12>,
-    application_client_iv: Option<Nonce12>,
     handshake_finished_server_key: Option<[u8; 32]>,
     handshake_finished_client_key: Option<[u8; 32]>,
+
+    /*
+    application_server_key: Option<[u8; 32]>,
+    application_client_key: Option<[u8; 32]>,
+    application_server_iv: Option<Nonce12>,
+    application_client_iv: Option<Nonce12>,
+    */
+    // TODO: get rid of these (atleast from here)
     signature_cert_verify: Option<[u8; 100]>,
     signature_cert_verify_len: usize,
     /// cert verify ctx hash sha256
@@ -130,14 +135,17 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
             key_share: [0; 36],
             handshake_server_key: None,
             handshake_client_key: None,
-            application_server_key: None,
-            application_client_key: None,
             handshake_server_iv: None,
             handshake_client_iv: None,
-            application_server_iv: None,
-            application_client_iv: None,
             handshake_finished_server_key: None,
             handshake_finished_client_key: None,
+
+            /*
+            application_server_key: None,
+            application_client_key: None,
+            application_server_iv: None,
+            application_client_iv: None,
+            */
             cert_verify_hash: None,
             hello_hash: None,
             hash_finished: None,
@@ -319,6 +327,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> CtxHandshakePr
                                 transcript_more.sha256_fork().sha256_finalize();
                             self.hash_finished = Some(finish_handshake_hash);
 
+                            /*
                             let ap_k = hs_k.finished_handshake(&finish_handshake_hash);
 
                             let mut server_application_iv: [u8; 12] = [0; 12];
@@ -336,7 +345,8 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> CtxHandshakePr
                                 Some(Nonce12::from_ks_iv(&server_application_iv));
                             self.application_client_key = Some(client_application_key);
                             self.application_client_iv =
-                                Some(Nonce12::from_ks_iv(&client_application_iv));
+                            Some(Nonce12::from_ks_iv(&client_application_iv));
+                            */
                         }
                     }
                 }
