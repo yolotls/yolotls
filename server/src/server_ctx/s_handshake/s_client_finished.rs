@@ -4,6 +4,8 @@ use crate::{Rfc8446Error, ServerHandshakeCtx, TlsServerCtxConfig, TlsServerCtxEr
 use ytls_traits::CryptoSha256HmacProcessor;
 use ytls_traits::{CryptoConfig, CryptoRng};
 
+use ytls_traits::Tls13KeyScheduleHandshakeSha256;
+
 use ytls_record::ClientFinished;
 
 impl<Config, Crypto, Rng> ServerHandshakeCtx<Config, Crypto, Rng>

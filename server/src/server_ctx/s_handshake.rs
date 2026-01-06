@@ -23,6 +23,7 @@ use ytls_traits::CryptoSha384TranscriptProcessor;
 use ytls_traits::CryptoX25519Processor;
 
 use ytls_keys::Tls13Keys;
+use ytls_traits::SecretStore;
 use ytls_traits::Tls13KeyScheduleApSha256;
 use ytls_traits::Tls13KeyScheduleDerivedSha256;
 use ytls_traits::Tls13KeyScheduleHandshakeSha256;
@@ -34,6 +35,8 @@ use crate::TlsServerCtxConfig;
 use crate::{Rfc8446Error, TlsServerCtxError};
 
 use ytls_util::Nonce12;
+
+use ytls_keys::Tls13KeysHandshakeSha256;
 
 /// State machine context for yTLS Server
 pub struct ServerHandshakeCtx<Config, Crypto, Rng> {
@@ -91,12 +94,6 @@ pub struct ServerHandshakeCtx<Config, Crypto, Rng> {
     handshake_finished_server_key: Option<[u8; 32]>,
     handshake_finished_client_key: Option<[u8; 32]>,
 
-    /*
-    application_server_key: Option<[u8; 32]>,
-    application_client_key: Option<[u8; 32]>,
-    application_server_iv: Option<Nonce12>,
-    application_client_iv: Option<Nonce12>,
-    */
     // TODO: get rid of these (atleast from here)
     signature_cert_verify: Option<[u8; 100]>,
     signature_cert_verify_len: usize,
@@ -106,13 +103,18 @@ pub struct ServerHandshakeCtx<Config, Crypto, Rng> {
     hello_hash: Option<[u8; 32]>,
     /// Handshake finished hash
     hash_finished: Option<[u8; 32]>,
+
+    is_complete: bool,
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
-    ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     /// New yTLS server context with the given configuration
-    pub fn with_required(config: C, crypto: Crypto, rng: Rng) -> Self {
+    pub fn with_required(config: Config, crypto: Crypto, rng: Rng) -> Self {
         Self {
             config,
             crypto,
@@ -140,41 +142,40 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
             handshake_finished_server_key: None,
             handshake_finished_client_key: None,
 
-            /*
-            application_server_key: None,
-            application_client_key: None,
-            application_server_iv: None,
-            application_client_iv: None,
-            */
             cert_verify_hash: None,
             hello_hash: None,
             hash_finished: None,
             signature_cert_verify: None,
             signature_cert_verify_len: 0,
+
+            is_complete: false,
         }
     }
 }
 
-use super::ServerApplicationCtx;
 use ytls_traits::CtxApplicationProcessor;
 use ytls_traits::CtxHandshakeProcessor;
 use ytls_traits::HandshakeComplete;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> CtxHandshakeProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> CtxHandshakeProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     type Error = TlsServerCtxError;
-    /// Switch to application context after [`HandshakeComplete`]
-    fn switch_to_application(self) -> Option<impl CtxApplicationProcessor> {
-        None::<ServerApplicationCtx<C, Crypto, Rng>>
-    }
     /// Spin yTLS Server Handshake Context
     #[inline]
-    fn spin_handshake<Li: TlsLeftIn, Lo: TlsLeftOut>(
+    fn spin_handshake<Li: TlsLeftIn, Lo: TlsLeftOut, Ks: SecretStore>(
         &mut self,
         li: &mut Li,
         lo: &mut Lo,
+        ks: &mut Ks,
     ) -> Result<Option<HandshakeComplete>, Self::Error> {
+        if self.is_complete {
+            return Ok(Some(HandshakeComplete));
+        }
+
         let init_data = li.left_buf_in();
         let init_len = init_data.len();
         let mut data = init_data;
@@ -188,7 +189,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> CtxHandshakePr
 
             consumed = init_len - remaining.len();
             println!(
-                "Consumed {consumed} Remaining len = {} out of initial {init_len}",
+                "Handshake consumed {consumed} Remaining len = {} out of initial {init_len}",
                 remaining.len()
             );
 
@@ -261,6 +262,8 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> CtxHandshakePr
                     } else {
                         return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected));
                     };
+
+                    self.is_complete = true;
                 }
                 Content::Handshake(content) => {
                     let msg = content.msg();
@@ -327,7 +330,6 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> CtxHandshakePr
                                 transcript_more.sha256_fork().sha256_finalize();
                             self.hash_finished = Some(finish_handshake_hash);
 
-                            /*
                             let ap_k = hs_k.finished_handshake(&finish_handshake_hash);
 
                             let mut server_application_iv: [u8; 12] = [0; 12];
@@ -338,15 +340,25 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> CtxHandshakePr
                             ap_k.application_server_key(&mut server_application_key);
                             ap_k.application_server_iv(&mut server_application_iv);
                             ap_k.application_client_key(&mut client_application_key);
+
                             ap_k.application_client_iv(&mut client_application_iv);
 
-                            self.application_server_key = Some(server_application_key);
-                            self.application_server_iv =
-                                Some(Nonce12::from_ks_iv(&server_application_iv));
-                            self.application_client_key = Some(client_application_key);
-                            self.application_client_iv =
-                            Some(Nonce12::from_ks_iv(&client_application_iv));
-                            */
+                            ks.store_ap_client_key(&client_application_key);
+                            ks.store_ap_client_iv(&client_application_iv);
+                            ks.store_ap_server_key(&server_application_key);
+                            ks.store_ap_server_iv(&server_application_iv);
+                            /*
+                                *ks = super::KeyStoreAp::Complete(
+                                    super::KeyStoreApComplete {
+                                        application_server_key: server_application_key,
+                                        application_client_key: client_application_key,
+                                        application_server_iv:
+                                        Nonce12::from_ks_iv(&server_application_iv),
+                                        application_client_iv:
+                                        Nonce12::from_ks_iv(&client_application_iv)
+                                    }
+                            );
+                                */
                         }
                     }
                 }
@@ -363,6 +375,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> CtxHandshakePr
         }
 
         li.left_buf_mark_discard_in(consumed);
+
+        if self.is_complete {
+            println!("Completion...");
+            return Ok(Some(HandshakeComplete));
+        }
 
         Ok(None)
     }

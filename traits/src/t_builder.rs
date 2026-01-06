@@ -19,6 +19,34 @@ pub trait HandshakeBuilder {
     fn as_encoded_bytes(&self) -> &[u8];
 }
 
+/// Wrapped Application data within Application context builder
+pub trait WrappedApplicationBuilder {
+    type Error;
+
+    /// Build Application data
+    fn application_data(_data: &[u8]) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
+    /// Get disjoint mut for AEAD use of 1) additional data 2) cleartext data to encrypt
+    fn as_disjoint_mut_for_aead(&mut self) -> Result<[&mut [u8]; 2], Self::Error>;
+    /// Set the AEAD authenticated tag of this wrapped record after encryption
+    fn set_auth_tag(&mut self, new_tag: &[u8; 16]) -> ();
+    /// Provide the cleartext as mutable in order for it to be encrypted into ciphertext.
+    fn as_ciphertext_mut(&mut self) -> &mut [u8];
+    /// Provides the missing handshake header for hashing purposes
+    /// which must be included in the transcript hash.
+    fn wrapped_hash_header_ref(&self) -> [u8; 5];
+    /// Provide the raw encoded bytes for hashing purposes which
+    /// includes the cleartext portition that will be encrypted
+    /// except the wrapped handshake header which must be hashed
+    /// separately through wrapped_hash_header_ref due to
+    /// to-be-encrypted records being "wrapped" over TLS 1.2 appdata.
+    fn as_hashing_context_ref(&self) -> &[u8];
+    /// Provide the full raw encoded bytes including placeholder
+    /// tag and record headers
+    fn as_encoded_bytes(&self) -> &[u8];
+}
+
 /// Same except non-wrapped but where we wrap the record into
 /// TLS 1.2 Application Data layer, typically encrypted when
 /// written to wire.

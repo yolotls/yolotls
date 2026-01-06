@@ -10,6 +10,7 @@ use ytls_traits::ServerCertificateVerifyBuilder;
 use ytls_traits::ServerCertificatesBuilder;
 use ytls_traits::ServerHandshakeFinishedBuilder;
 use ytls_traits::ServerHelloBuilder;
+use ytls_traits::WrappedApplicationBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
 
 /// Provides statically allocated Record Builder based on worst case
@@ -21,6 +22,63 @@ pub struct StaticRecordBuilder<const N: usize> {
     rec_buf: RecordBuffer<N>,
 }
 
+use crate::builder::b_wrap_application_data::BufStaticAppData;
+use crate::WrappedAppRecordBuffer;
+
+/// Same as [`StaticRecordBuilder`] but in the Application context instead of handshake
+#[derive(Debug, PartialEq)]
+pub struct WrappedAppStaticRecordBuilder<const N: usize> {
+    rec_buf: WrappedAppRecordBuffer<N>,
+}
+
+impl<const N: usize> WrappedApplicationBuilder for WrappedAppStaticRecordBuilder<N> {
+    type Error = BuilderError;
+    /// Construct handshake server finished
+    fn application_data(s: &[u8]) -> Result<Self, Self::Error> {
+        Ok(Self {
+            rec_buf: WrappedAppRecordBuffer::<N>::AppData(
+                BufStaticAppData::<N>::static_from_untyped(s)?,
+            ),
+        })
+    }
+    #[inline]
+    fn as_disjoint_mut_for_aead(&mut self) -> Result<[&mut [u8]; 2], Self::Error> {
+        match self.rec_buf {
+            WrappedAppRecordBuffer::AppData(ref mut s) => s.as_disjoint_mut_for_aead(),
+        }
+    }
+    #[inline]
+    fn set_auth_tag(&mut self, new_tag: &[u8; 16]) {
+        match self.rec_buf {
+            WrappedAppRecordBuffer::AppData(ref mut s) => s.set_auth_tag(new_tag),
+        }
+    }
+    #[inline]
+    fn as_ciphertext_mut(&mut self) -> &mut [u8] {
+        match self.rec_buf {
+            WrappedAppRecordBuffer::AppData(ref mut s) => s.as_ciphertext_mut(),
+        }
+    }
+    #[inline]
+    fn wrapped_hash_header_ref(&self) -> [u8; 5] {
+        match self.rec_buf {
+            WrappedAppRecordBuffer::AppData(ref s) => s.wrapped_hash_header_ref(),
+        }
+    }
+    #[inline]
+    fn as_hashing_context_ref(&self) -> &[u8] {
+        match self.rec_buf {
+            WrappedAppRecordBuffer::AppData(ref s) => &s.as_hashing_context_ref(),
+        }
+    }
+    #[inline]
+    fn as_encoded_bytes(&self) -> &[u8] {
+        match self.rec_buf {
+            WrappedAppRecordBuffer::AppData(ref s) => &s.as_encoded_bytes(),
+        }
+    }
+}
+
 /// Same as [`StaticRecordBuilder`] but provides wrapping into TLS1.2 AppData
 /// which is typically used when the records are AEAD'd to preserve compatibility
 /// with the middleboxes.
@@ -29,28 +87,28 @@ pub struct WrappedStaticRecordBuilder<const N: usize> {
     rec_buf: WrappedRecordBuffer<N>,
 }
 
+use super::b_dhs_encrypted_extensions::BufStaticEncryptedExtensions;
+use super::b_dhs_server_certificate::BufStaticServerCertificates;
+use super::b_dhs_server_certificate_verify::BufStaticServerCertificateVerify;
+use super::b_dhs_server_handshake_finished::BufStaticServerHandshakeFinished;
+
 impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     type Error = BuilderError;
     /// Construct handshake server finished
     fn server_handshake_finished<S: ServerHandshakeFinishedBuilder>(
         s: &S,
     ) -> Result<Self, Self::Error> {
-        Ok(
-            Self {
-                rec_buf:
-                    WrappedRecordBuffer::<N>::ServerHandshakeFinished(
-                        super::b_dhs_server_handshake_finished::BufStaticServerHandshakeFinished::<
-                            N,
-                        >::static_from_untyped(s)?,
-                    ),
-            },
-        )
+        Ok(Self {
+            rec_buf: WrappedRecordBuffer::<N>::ServerHandshakeFinished(
+                BufStaticServerHandshakeFinished::<N>::static_from_untyped(s)?,
+            ),
+        })
     }
     /// Construct handshake server certificate/s.
     fn server_certificates<S: ServerCertificatesBuilder>(s: &S) -> Result<Self, Self::Error> {
         Ok(Self {
             rec_buf: WrappedRecordBuffer::<N>::ServerCertificates(
-                super::b_dhs_server_certificate::BufStaticServerCertificates::<N>::static_from_untyped(s)?,
+                BufStaticServerCertificates::<N>::static_from_untyped(s)?,
             ),
         })
     }
@@ -58,23 +116,20 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     fn server_certificate_verify<S: ServerCertificateVerifyBuilder>(
         s: &S,
     ) -> Result<Self, Self::Error> {
-        Ok(
-            Self {
-                rec_buf:
-                    WrappedRecordBuffer::<N>::ServerCertificateVerify(
-                        super::b_dhs_server_certificate_verify::BufStaticServerCertificateVerify::<
-                            N,
-                        >::static_from_untyped(s)?,
-                    ),
-            },
-        )
+        Ok(Self {
+            rec_buf: WrappedRecordBuffer::<N>::ServerCertificateVerify(
+                BufStaticServerCertificateVerify::<N>::static_from_untyped(s)?,
+            ),
+        })
     }
     /// Construct handshake encrypted extensions.
     fn encrypted_extensions<S: EncryptedExtensionsBuilder>(s: &S) -> Result<Self, Self::Error> {
         Ok(Self {
-            rec_buf: WrappedRecordBuffer::<N>::EncryptedExtensions(
-                super::b_dhs_encrypted_extensions::BufStaticEncryptedExtensions::<N>::static_from_untyped(s)?,
-            ),
+            rec_buf: WrappedRecordBuffer::<N>::EncryptedExtensions(BufStaticEncryptedExtensions::<
+                N,
+            >::static_from_untyped(
+                s
+            )?),
         })
     }
     #[inline]

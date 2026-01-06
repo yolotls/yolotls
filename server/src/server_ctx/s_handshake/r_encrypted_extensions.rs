@@ -7,20 +7,27 @@ use ytls_traits::CryptoSha256TranscriptProcessor;
 
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;
+use ytls_traits::Tls13KeyScheduleHandshakeSha256;
 use ytls_traits::TlsLeftOut;
 
 use ytls_record::WrappedStaticRecordBuilder;
 use ytls_traits::EncryptedExtensionsBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> EncryptedExtensionsBuilder
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> EncryptedExtensionsBuilder for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     // Empty for nowx
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
-    ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     pub(crate) fn do_encrypted_extensions<L: TlsLeftOut, T: CryptoSha256TranscriptProcessor>(

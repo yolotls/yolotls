@@ -5,6 +5,19 @@
 
 //use crate::CryptoConfig;
 
+/// When context upgrades we need to store/load generated ap secrets
+pub trait SecretStore {
+    fn store_ap_client_key(&mut self, k: &[u8]) -> ();
+    fn store_ap_client_iv(&mut self, n: &[u8]) -> ();
+    fn store_ap_server_key(&mut self, k: &[u8]) -> ();
+    fn store_ap_server_iv(&mut self, n: &[u8]) -> ();
+
+    fn load_ap_client_key(&self) -> &[u8];
+    fn load_ap_client_iv(&self) -> &[u8];
+    fn load_ap_server_key(&self) -> &[u8];
+    fn load_ap_server_iv(&self) -> &[u8];
+}
+
 /// Initialize TLS1.3 Key Schedule
 pub trait Tls13KeyScheduleInit {
     /// Init TLS1.3 Key Schedule with the given cryptography that includes Hkdf<Sha256> processor.

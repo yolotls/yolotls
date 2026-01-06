@@ -14,8 +14,13 @@ use ytls_traits::TlsLeftOut;
 
 use ytls_traits::CryptoSha256TranscriptProcessor;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
-    ServerHandshakeCtx<C, Crypto, Rng>
+use ytls_traits::Tls13KeyScheduleHandshakeSha256;
+
+impl<Config, Crypto, Rng> ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     pub(crate) fn do_server_hello<L: TlsLeftOut, T: CryptoSha256TranscriptProcessor>(
@@ -44,8 +49,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHelloBuilder
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ServerHelloBuilder for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     fn legacy_version(&self) -> &[u8; 2] {
         &[3, 3]

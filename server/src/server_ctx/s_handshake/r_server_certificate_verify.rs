@@ -6,6 +6,8 @@ use ytls_traits::CryptoChaCha20Poly1305Processor;
 use ytls_traits::CryptoSha256TranscriptProcessor;
 use ytls_traits::CryptoSignerP256Processor;
 
+use ytls_traits::Tls13KeyScheduleHandshakeSha256;
+
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;
 use ytls_traits::TlsLeftOut;
@@ -14,8 +16,11 @@ use ytls_record::WrappedStaticRecordBuilder;
 use ytls_traits::ServerCertificateVerifyBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerCertificateVerifyBuilder
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ServerCertificateVerifyBuilder for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn signature_algorithm(&self) -> [u8; 2] {
@@ -31,8 +36,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerCertific
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
-    ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     pub(crate) fn do_server_certificate_verify<
