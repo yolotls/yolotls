@@ -35,7 +35,7 @@ ytls-util = { path = "../util" }
 rand_core = { version = "=0.10.0-rc-2", default-features = false }
 ctutils = { version = "0.3", default-features = false }
 # temp debug
-hex = "0.4.3"
+#hex = "0.4.3"
 zeroize = { version = "1.8", default-features = false, optional = true, features = ["derive"] }
 
 [package.metadata.docs.rs]

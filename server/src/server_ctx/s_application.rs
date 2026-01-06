@@ -110,7 +110,6 @@ where
                 let d = right.on_encrypt();
 
                 if d.len() > 0 {
-                    println!("Encrypt = {:?}", core::str::from_utf8(d));
 
                     let server_key = self.application_server_key;
                     let server_nonce: [u8; 12] = match self.application_server_iv.use_and_incr() {

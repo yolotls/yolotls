@@ -188,10 +188,6 @@ where
                 Record::parse_client(self, data).map_err(|e| TlsServerCtxError::Record(e))?;
 
             consumed = init_len - remaining.len();
-            println!(
-                "Handshake consumed {consumed} Remaining len = {} out of initial {init_len}",
-                remaining.len()
-            );
 
             if self.shared_secret.is_none() {
                 if let Some(pk) = self.client_x25519_pk {
@@ -199,21 +195,14 @@ where
                     self.public_key = Some(x25519_ctx.x25519_public_key());
                     self.shared_secret = Some(x25519_ctx.x25519_shared_secret(&pk));
                     self.key_share = self.key_share_x25519();
-                    println!("Key Share generated = {}", hex::encode(self.key_share));
                 }
             }
 
             match rec.content() {
                 Content::ChangeCipherSpec => {
-                    println!("ChangeCipherSpec .. = {}", hex::encode(rec.as_bytes()));
+                    // ignore
                 }
                 Content::ApplicationData => {
-                    println!(
-                        "ApplicationData {} ..  = {}",
-                        hex::encode(rec.header_as_bytes()),
-                        hex::encode(rec.as_bytes())
-                    );
-
                     let key = match self.handshake_client_key {
                         Some(k) => k,
                         None => panic!("No key."),
@@ -262,8 +251,8 @@ where
                             self.check_client_finished(&f)?;
                             self.is_complete = true;
                         }
-                        WrappedMsgType::Alert(alert) => {
-                            println!("Received Alert = {:?}", alert);
+                        WrappedMsgType::Alert(_alert) => {
+                            // do nothing with it for now
                         }
                         _ => {
                             return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected));
@@ -276,7 +265,7 @@ where
                         MsgType::ClientFinished(_) => {
                             return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected));
                         }
-                        MsgType::ClientHello(h) => {
+                        MsgType::ClientHello(_h) => {
                             let shared_secret = match self.shared_secret {
                                 Some(s) => s,
                                 None => {
@@ -288,7 +277,6 @@ where
 
                             let mut transcript = Crypto::sha256_init();
                             transcript.sha256_update(rec.as_bytes());
-                            println!("ClientHello = {:?}", h);
                             self.do_server_hello(lo, &mut transcript)?;
                             let mut transcript_more = transcript.sha256_fork();
                             let hello_hash = transcript.sha256_finalize();
@@ -367,8 +355,8 @@ where
                         }
                     }
                 }
-                Content::Alert(alert) => {
-                    println!("Alert = {:?}", alert);
+                Content::Alert(_alert) => {
+                    // do nothing with it for now
                 }
             }
 
@@ -382,7 +370,6 @@ where
         li.left_buf_mark_discard_in(consumed);
 
         if self.is_complete {
-            println!("Completion...");
             return Ok(Some(HandshakeComplete));
         }
 
