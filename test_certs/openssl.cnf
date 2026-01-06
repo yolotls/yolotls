@@ -19,5 +19,5 @@ basicConstraints = CA:true
 keyUsage = cRLSign, keyCertSign, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign
 
 [ alt_names ]
-DNS.1 = loiter.rustcryp.to
+DNS.1 = test.rustcryp.to
 

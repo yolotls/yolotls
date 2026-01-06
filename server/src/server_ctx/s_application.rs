@@ -91,7 +91,7 @@ where
                 let mut tag: [u8; 16] = [0; 16];
 
                 let body_len = full_payload_len - 16;
-                let mut body: [u8; 200] = [0; 200];
+                let mut body: [u8; 8192] = [0; 8192];
                 body[0..body_len].copy_from_slice(&full_payload[0..body_len]);
                 tag.copy_from_slice(&full_payload[body_len..body_len + 16]);
                 let additional_data = rec.header_as_bytes();
