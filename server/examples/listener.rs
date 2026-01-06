@@ -44,15 +44,46 @@ impl TlsServerCtxConfig for MyTlsServerCfg {
     }
 }
 
-struct Buffers {
+use ytls_traits::TlsRight;
+
+struct ApplicationIo {}
+
+impl TlsRight for ApplicationIo {}
+
+struct NetworkIoOut {
     out_buf: Vec<u8>,
 }
 
-use ytls_server::TlsLeft;
+struct NetworkIoIn {
+    in_buf: [u8; 8192],
+    in_buf_len: usize,
+}
 
-impl TlsLeft for Buffers {
+use ytls_server::{TlsLeftIn, TlsLeftOut};
+
+impl TlsLeftOut for NetworkIoOut {
     fn send_record_out(&mut self, data: &[u8]) -> () {
         self.out_buf.extend_from_slice(data);
+    }
+}
+
+impl TlsLeftIn for NetworkIoIn {
+    /*
+        fn left_bufs_mut(&mut self) -> (mut &[u8], &mut [u8]) {
+            (&self.in_buf[0..self.in_buf_len], &self,out_buf[self.out_buf_len..])
+        }
+        fn left_buf_mark_send_out(&mut self, len: usize) -> () {
+            println!("Sending out {len} bytes");
+            self.out_buf_len += len;
+    }*/
+    fn left_buf_in(&self) -> &[u8] {
+        &self.in_buf[0..self.in_buf_len]
+    }
+    fn left_buf_mark_discard_in(&mut self, len: usize) -> () {
+        println!("Discarding {len} bytes");
+        // This is overly naive & slow, implement proper rotating buffering scheme
+        self.in_buf.rotate_left(len);
+        self.in_buf_len -= len;
     }
 }
 
@@ -76,11 +107,18 @@ fn load_pem_vec(path: &str) -> Vec<u8> {
 }
 
 fn handle_client(mut stream: TcpStream) {
-    let mut buf: [u8; 8192] = [0; 8192];
+    //let mut buf: [u8; 8192] = [0; 8192];
 
-    let mut tls_buffers = Buffers {
+    let mut network_out = NetworkIoOut {
         out_buf: Vec::with_capacity(8192),
     };
+
+    let mut network_in = NetworkIoIn {
+        in_buf: [0; 8192],
+        in_buf_len: 0,
+    };
+
+    let mut app_buffers = ApplicationIo {};
 
     let rng = rand::rng();
     let crypto_cfg = ytls_rustcrypto::RustCrypto;
@@ -119,28 +157,38 @@ fn handle_client(mut stream: TcpStream) {
         server_cert: cert_data,
         server_private_key: key_data,
     };
-    let mut tls_ctx = TlsServerCtx::with_config_and_crypto(tls_cfg, crypto_cfg, rng).unwrap();
+
+    let mut tls_ctx = TlsServerCtx::with_required(tls_cfg, crypto_cfg, rng);
+    //let mut tls_ctx = TlsServerCtx::with_config_and_crypto(tls_cfg, crypto_cfg, rng).unwrap();
 
     loop {
-        let s = stream.read(&mut buf).unwrap();
+        let b_start = network_in.in_buf_len;
+        let b_end = network_in.in_buf.len();
+        let s = stream.read(&mut network_in.in_buf[b_start..b_end]).unwrap();
 
         if s == 0 {
             println!("Client disconnected.");
             break;
         }
 
-        println!("Read {s} bytes");
-        println!("Bytes = {}", hex::encode(&buf[0..s]));
+        network_in.in_buf_len += s;
 
+        println!("Read {s} bytes");
+        println!(
+            "Bytes = {}",
+            hex::encode(&network_in.in_buf[b_start..b_start + s])
+        );
+
+        // &buf[0..s]
         tls_ctx
-            .process_tls_records(&mut tls_buffers, &buf[0..s])
+            .advance_with(&mut network_in, &mut network_out, &mut app_buffers)
             .unwrap();
 
-        println!("Buffer out len = {}", tls_buffers.out_buf.len());
+        println!("Buffer out len = {}", network_out.out_buf.len());
 
-        if tls_buffers.out_buf.len() > 0 {
-            stream.write_all(&tls_buffers.out_buf).unwrap();
-            tls_buffers.out_buf.clear();
+        if network_out.out_buf.len() > 0 {
+            stream.write_all(&network_out.out_buf).unwrap();
+            network_out.out_buf.clear();
         }
     }
 }

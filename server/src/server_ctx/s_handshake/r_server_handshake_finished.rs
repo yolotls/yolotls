@@ -1,12 +1,12 @@
-//! Server handshake finished for Server Ctx
+//! Server handshake finished for Server Handshake Ctx
 
-use crate::{TlsServerCtx, TlsServerCtxConfig, TlsServerCtxError};
+use crate::{ServerHandshakeCtx, TlsServerCtxConfig, TlsServerCtxError};
 
 use ytls_traits::CryptoSha256TranscriptProcessor;
 
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;
-use ytls_traits::TlsLeft;
+use ytls_traits::TlsLeftOut;
 
 use ytls_record::WrappedStaticRecordBuilder;
 use ytls_traits::CryptoChaCha20Poly1305Processor;
@@ -15,7 +15,7 @@ use ytls_traits::ServerHandshakeFinishedBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
 
 impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshakeFinishedBuilder
-    for TlsServerCtx<C, Crypto, Rng>
+    for ServerHandshakeCtx<C, Crypto, Rng>
 {
     fn hash_finished(&self) -> &[u8] {
         match self.hash_finished {
@@ -25,14 +25,19 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshak
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
+    ServerHandshakeCtx<C, Crypto, Rng>
+{
     #[inline]
-    pub(crate) fn do_server_handshake_finished<L: TlsLeft, T: CryptoSha256TranscriptProcessor>(
+    pub(crate) fn do_server_handshake_finished<
+        L: TlsLeftOut,
+        T: CryptoSha256TranscriptProcessor,
+    >(
         &mut self,
         left: &mut L,
         transcript: &mut T,
     ) -> Result<(), TlsServerCtxError> {
-        let key: [u8; 32] = match self.handshake_secret_key {
+        let key: [u8; 32] = match self.handshake_server_key {
             None => return Err(TlsServerCtxError::MissingHandshakeKey),
             Some(k) => k,
         };
@@ -51,7 +56,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
         let ctx_transcript = transcript.sha256_fork();
         let ctx_hash_input = ctx_transcript.sha256_finalize();
 
-        let hs_key = match self.handshake_finished_key {
+        let hs_key = match self.handshake_finished_server_key {
             Some(ref k) => k,
             None => &[
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

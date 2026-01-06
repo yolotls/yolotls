@@ -14,6 +14,8 @@ pub struct AeadChaCha20Poly1305 {
 use ytls_traits::AeadError;
 
 impl AeadChaCha20Poly1305 {
+    /// CryptoChaCha20Poly1305Processor Init
+    #[inline]
     pub fn chacha20poly1305_init(key: &[u8; 32]) -> Self {
         Self {
             cipher: ChaCha20Poly1305::new(&(*key).into()),
@@ -22,6 +24,7 @@ impl AeadChaCha20Poly1305 {
 }
 
 impl CryptoChaCha20Poly1305Processor for AeadChaCha20Poly1305 {
+    #[inline]
     fn encrypt_in_place(
         &self,
         nonce: &[u8; 12],
@@ -35,5 +38,20 @@ impl CryptoChaCha20Poly1305Processor for AeadChaCha20Poly1305 {
             .map_err(|_| AeadError::Opaque)?;
 
         Ok(tag.into())
+    }
+    #[inline]
+    fn decrypt_in_place(
+        &self,
+        nonce: &[u8; 12],
+        additional_data: &[u8],
+        to_decrypt: &mut [u8],
+        tag: &[u8; 16],
+    ) -> Result<(), AeadError> {
+        let nonce: Nonce = (*nonce).into();
+        self.cipher
+            .decrypt_inout_detached(&nonce, &additional_data, to_decrypt.into(), tag.into())
+            .map_err(|_| AeadError::Opaque)?;
+
+        Ok(())
     }
 }

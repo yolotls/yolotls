@@ -59,6 +59,10 @@ pub enum Content<'r> {
 }
 
 impl<'r> Record<'r> {
+    /// Provide the header associated data
+    pub fn header_as_bytes(&self) -> &[u8] {
+        self.header.as_bytes()
+    }
     /// Provide the raw record in bytes without header
     pub fn as_bytes(&self) -> &[u8] {
         self.raw_bytes

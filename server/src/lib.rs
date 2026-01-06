@@ -26,7 +26,7 @@ pub use error::*;
 //-----------------------------------------------
 
 #[doc(inline)]
-pub use ytls_traits::TlsLeft;
+pub use ytls_traits::{TlsLeftIn, TlsLeftOut, TlsRight};
 
 mod server_config;
 #[doc(inline)]

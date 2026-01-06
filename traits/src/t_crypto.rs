@@ -134,4 +134,11 @@ pub trait CryptoChaCha20Poly1305Processor {
         _additional_data: &[u8],
         _to_encrypt: &mut [u8],
     ) -> Result<[u8; 16], AeadError>;
+    fn decrypt_in_place(
+        &self,
+        _nonce: &[u8; 12],
+        _additional_data: &[u8],
+        _to_decrypt: &mut [u8],
+        _tag: &[u8; 16],
+    ) -> Result<(), AeadError>;
 }

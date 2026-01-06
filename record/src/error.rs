@@ -12,6 +12,8 @@ pub enum RecordError {
     OverflowLength,
     /// Client Hello within Record
     ClientHello(ClientHelloError),
+    /// Not allowed within Wrapped record
+    NotAllowed,
 }
 
 #[derive(Debug, PartialEq)]

@@ -1,6 +1,6 @@
 //! Respond with Server Hello
 
-use crate::TlsServerCtx;
+use crate::ServerHandshakeCtx;
 use crate::TlsServerCtxConfig;
 
 use crate::TlsServerCtxError;
@@ -10,13 +10,15 @@ use ytls_traits::CryptoRng;
 use ytls_traits::ServerHelloBuilder;
 
 use ytls_traits::HandshakeBuilder;
-use ytls_traits::TlsLeft;
+use ytls_traits::TlsLeftOut;
 
 use ytls_traits::CryptoSha256TranscriptProcessor;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C, Crypto, Rng> {
+impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
+    ServerHandshakeCtx<C, Crypto, Rng>
+{
     #[inline]
-    pub(crate) fn do_server_hello<L: TlsLeft, T: CryptoSha256TranscriptProcessor>(
+    pub(crate) fn do_server_hello<L: TlsLeftOut, T: CryptoSha256TranscriptProcessor>(
         &mut self,
         l: &mut L,
         t: &mut T,
@@ -43,7 +45,7 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> TlsServerCtx<C
 }
 
 impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHelloBuilder
-    for TlsServerCtx<C, Crypto, Rng>
+    for ServerHandshakeCtx<C, Crypto, Rng>
 {
     fn legacy_version(&self) -> &[u8; 2] {
         &[3, 3]

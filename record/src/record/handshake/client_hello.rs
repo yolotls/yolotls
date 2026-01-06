@@ -11,14 +11,14 @@ use zerocopy::{Immutable, IntoBytes, KnownLayout, TryFromBytes, Unaligned};
 
 #[derive(TryFromBytes, IntoBytes, KnownLayout, Immutable, Unaligned)]
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ClientHelloHdr {
     pub(crate) legacy_version: [u8; 2],
     pub(crate) client_random: [u8; 32],
     pub(crate) ses_id_len: u8,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ClientHello<'r> {
     pub(crate) hdr: &'r ClientHelloHdr,
 }
