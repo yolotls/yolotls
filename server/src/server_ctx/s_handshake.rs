@@ -253,17 +253,21 @@ where
 
                     use ytls_record::HandshakeMsg;
 
-                    if let WrappedMsgType::Handshake(HandshakeMsg {
-                        msg: MsgType::ClientFinished(f),
-                        ..
-                    }) = r.msg()
-                    {
-                        self.check_client_finished(&f)?;
-                    } else {
-                        return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected));
-                    };
-
-                    self.is_complete = true;
+                    match r.msg() {
+                        WrappedMsgType::Handshake(HandshakeMsg {
+                            msg: MsgType::ClientFinished(f),
+                            ..
+                        }) => {
+                            self.check_client_finished(&f)?;
+                            self.is_complete = true;
+                        }
+                        WrappedMsgType::Alert(alert) => {
+                            println!("Received Alert = {:?}", alert);
+                        }
+                        _ => {
+                            return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected));
+                        }
+                    }
                 }
                 Content::Handshake(content) => {
                     let msg = content.msg();
