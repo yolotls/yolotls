@@ -80,7 +80,7 @@ where
         };
 
         match e_res {
-            Err(_e) => {},
+            Err(_e) => {}
             Ok(_) => {}
         }
     }
