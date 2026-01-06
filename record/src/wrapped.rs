@@ -40,8 +40,8 @@ pub enum WrappedMsgType<'r> {
     Alert(AlertMsg<'r>),
 }
 
-use crate::HandshakeMsg;
 use crate::AlertMsg;
+use crate::HandshakeMsg;
 
 impl<'r> WrappedRecord<'r> {
     #[inline]

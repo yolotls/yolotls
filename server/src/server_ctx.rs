@@ -1,12 +1,19 @@
 //! Server Ctx
 
+use crate::TlsServerCtxConfig;
 use crate::TlsServerCtxError;
+
+use ytls_traits::CryptoConfig;
+use ytls_traits::CryptoRng;
 
 pub use ytls_traits::CtxApplicationProcessor;
 pub use ytls_traits::CtxHandshakeProcessor;
 use ytls_traits::{TlsLeftIn, TlsLeftOut, TlsRight};
 
 pub use ytls_traits::HandshakeComplete;
+
+#[cfg(feature = "zeroize")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 mod s_handshake;
 #[doc(inline)]
@@ -15,10 +22,6 @@ pub use s_handshake::*;
 mod s_application;
 #[doc(inline)]
 pub use s_application::*;
-
-use crate::TlsServerCtxConfig;
-use ytls_traits::CryptoConfig;
-use ytls_traits::CryptoRng;
 
 enum CurCtx<Config, Crypto, Rng> {
     Handshake(ServerHandshakeCtx<Config, Crypto, Rng>),
@@ -32,6 +35,7 @@ pub struct TlsServerCtx<Config, Crypto, Rng> {
     hs_complete: bool,
 }
 
+#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub(crate) struct KeyStoreAp {
     application_server_key: [u8; 32],
     application_client_key: [u8; 32],
@@ -123,6 +127,7 @@ where
                 self.crypto.clone(),
                 &self.ks,
             ));
+            self.ks = KeyStoreAp::default();
         }
 
         if let CurCtx::Application(ref mut a) = self.cur {

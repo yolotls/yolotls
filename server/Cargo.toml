@@ -23,7 +23,7 @@ sec1 = { version = "=0.8.0-rc.10", default-features = false }
 [features]
 default = []
 std = []
-zeroize = ["dep:zeroize"]
+zeroize = ["dep:zeroize", "ytls-util/zeroize", "ytls-keys/zeroize"]
 
 [dependencies]
 ytls-extensions = { path = "../extensions" }

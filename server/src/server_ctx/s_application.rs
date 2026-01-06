@@ -12,20 +12,25 @@ use ytls_record::Content;
 use ytls_record::Record;
 use ytls_util::Nonce12;
 
+#[cfg(feature = "zeroize")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
+
 /// yTLS Server Application Ctx
+#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct ServerApplicationCtx<Crypto> {
-    crypto: Crypto,
+    //crypto: Crypto,
     application_server_key: [u8; 32],
     application_client_key: [u8; 32],
     application_server_iv: Nonce12,
     application_client_iv: Nonce12,
+    _pt: core::marker::PhantomData<Crypto>,
 }
 
 impl<Crypto> ServerApplicationCtx<Crypto>
 where
     Crypto: CryptoConfig,
 {
-    pub fn with_required<S: SecretStore>(crypto: Crypto, s: &S) -> Self {
+    pub fn with_required<S: SecretStore>(_crypto: Crypto, s: &S) -> Self {
         let mut application_server_key: [u8; 32] = [0; 32];
         let mut application_client_key: [u8; 32] = [0; 32];
         let mut application_server_iv_raw: [u8; 12] = [0; 12];
@@ -40,7 +45,7 @@ where
         let application_client_iv = Nonce12::from_ks_iv(&application_client_iv_raw);
 
         Self {
-            crypto,
+            _pt: core::marker::PhantomData,
             application_server_key,
             application_client_key,
             application_server_iv,

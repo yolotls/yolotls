@@ -2,7 +2,11 @@ use crypto_bigint::Encoding;
 
 use crypto_bigint::U128;
 
+#[cfg(feature = "zeroize")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
+
 /// Running 12-byte (U96) Nonce for ChaCha20Poly1305 / AES GCM AEADs
+#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Nonce12 {
     iv: U128,
     seq_id: u64,
