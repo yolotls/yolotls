@@ -5,63 +5,33 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![MSRV](https://img.shields.io/badge/MSRV-1.60.0-blue)
 
-yoloTLS is when / We Can / but not necessarily whether / We Should
+de-coupled no_std, no_alloc TLS 1.3 suite
 
-# Goals / Problems To Solve
+⚠️  **Experimental - This has not received any security etc. reviews** ⚠️
 
-| #               | Topic                                                   |
-| :---            | :---                                                    |
-| [2](issues/2)   | **We Can**: Experimental Fun Hobby Project (tm)         |
-| [3](issues/3)   | `no_std` with std as opt-in                             |
-| [4](issues/4)   | Modern API designed from scratch                        |
-| [5](issues/5)   | Both TLS and DTLS primary citizens                      |
-| [6](issues/6)   | Pluggable De-Coupled Cipher suites / Algos              |
-| [7](issues/7)   | Portability and Safety focus with Performance second    |
-| [8](issues/8)   | wasm32-wasi and wasm32-u-u support from start           |
-| [9](issues/9)   | sans-io de-coupled I/O with both Completion and Evented |
-| [10](issues/10) | de-coupled Protocol model                               |
-| [11](issues/11) | Unsafe TLS/SSL as "pluggable" opt-ins                   |
-| [12](issues/12)   | API Abstractions / Bindings to other languages          |
+# Context
 
-Any /current/new/ goal can be adjusted / adopted etc. by proposing via a PR to above list linking to the relevant proposed Goal.
+| Crate                       | Description                          |
+| ;---                        | :---                                 |
+| [ytls-server](./server)     | Server TLS context                   |
+| [ytls-client](./client)     | Client TLS context                   |
 
-# Crates
+# Protocol
 
-| Crate           | Description                          |
-| :---            | :---                                 |
-| [ytls-record](./record)     | Record layer                         |
-| [ytls-typed](./typed)      | Typed conversions from protocol data |
-| [ytls-server](./server)     | Server context                       |
+| Crate                           | Description                          |
+| :---                            | :---                                 |
+| [ytls-traits](./traits)         | Traits used throughout the suite     |
+| [ytls-keys](./keys)             | Keying operations used               |
+| [ytls-record](./record)         | Record layer parsing and building    |
+| [ytls-typed](./typed)           | Typed conversions from protocol raw  |
 | [ytls-extensions](./extensions) | Extensions handling                  |
+| [utls-util](./util)             | Various utilities                    |
 
-# Non-Goals as of Now
+# Cryptography
 
-- **We Should**: Taking It Seriously (tm)
-- FIPS / Regulation
-
-# Testbeds
-
-- [ ] yolotls_client - utility knife for client side operations
-- [ ] yolotls_server - utility knife for serving side operations
-- [ ] yaws Integration demonstrating wasm32-wasi w/ WebRTC (DTLS) + h1/2specs + QUIC
-- [ ] e-mail server / client integration
-
-## Run
-
-Lunatic Flavor:
-
-$ `RUSTFLAGS="--cfg yaws_flavor=\"lunatic\"" cargo run --bin yolotls_client --target wasm32-wasi`
-
-io_uring Flavor:
-
-$ `RUSTFLAGS="--cfg yaws_flavor=\"io_uring\"" cargo run --bin yolotls_client`
-
-## yaws Library
-
-yoloTLS has non-exclusive options
-
-- [ ] `cfg(yaws_x = "a")` - `x` - TODO
-- [ ] `cfg(yaws_x = "b")` - `y` - TODO
+| Crate                                  | Description                          |
+| :---                                   | :---                                 |
+| [ytls-rustcrypto](./crypto/rustcrypto) | Rustcrypto derived cryptography      |
 
 ## License
 
