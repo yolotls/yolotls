@@ -12,7 +12,7 @@ de-coupled no_std, no_alloc TLS 1.3 suite
 # Context
 
 | Crate                       | Description                          |
-| ;---                        | :---                                 |
+| :---                        | :---                                 |
 | [ytls-server](./server)     | Server TLS context                   |
 | [ytls-client](./client)     | Client TLS context                   |
 
