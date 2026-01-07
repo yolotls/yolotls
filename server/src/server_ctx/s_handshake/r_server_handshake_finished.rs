@@ -14,8 +14,13 @@ use ytls_traits::CryptoSha256HmacProcessor;
 use ytls_traits::ServerHandshakeFinishedBuilder;
 use ytls_traits::WrappedHandshakeBuilder;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshakeFinishedBuilder
-    for ServerHandshakeCtx<C, Crypto, Rng>
+use ytls_traits::Tls13KeyScheduleHandshakeSha256;
+
+impl<Config, Crypto, Rng> ServerHandshakeFinishedBuilder for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     fn hash_finished(&self) -> &[u8] {
         match self.hash_finished {
@@ -25,8 +30,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ServerHandshak
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng>
-    ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     pub(crate) fn do_server_handshake_finished<

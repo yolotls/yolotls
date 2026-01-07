@@ -23,6 +23,7 @@ sec1 = { version = "=0.8.0-rc.10", default-features = false }
 [features]
 default = []
 std = []
+zeroize = ["dep:zeroize", "ytls-util/zeroize", "ytls-keys/zeroize"]
 
 [dependencies]
 ytls-extensions = { path = "../extensions" }
@@ -35,6 +36,7 @@ rand_core = { version = "=0.10.0-rc-2", default-features = false }
 ctutils = { version = "0.3", default-features = false }
 # temp debug
 hex = "0.4.3"
+zeroize = { version = "1.8", default-features = false, optional = true, features = ["derive"] }
 
 [package.metadata.docs.rs]
 features = []

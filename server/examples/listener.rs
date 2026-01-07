@@ -46,9 +46,46 @@ impl TlsServerCtxConfig for MyTlsServerCfg {
 
 use ytls_traits::TlsRight;
 
-struct ApplicationIo {}
+struct ApplicationIo {
+    _in_buf: Vec<u8>,
+    out_buf: [u8; 8192],
+    out_buf_len: usize,
+}
 
-impl TlsRight for ApplicationIo {}
+impl Default for ApplicationIo {
+    fn default() -> Self {
+        Self {
+            _in_buf: vec![],
+            out_buf: [0; 8192],
+            out_buf_len: 0,
+        }
+    }
+}
+
+impl TlsRight for ApplicationIo {
+    #[inline]
+    fn on_decrypted(&mut self, data: &[u8]) -> () {
+        match core::str::from_utf8(data) {
+            Ok("PING\n") => {
+                if self.out_buf_len + 5 <= 8192 {
+                    self.out_buf[self.out_buf_len..self.out_buf_len + 5].copy_from_slice(b"PONG\n");
+                    self.out_buf_len += 5;
+                }
+            }
+            _ => {}
+        }
+        //self.in_buf.extend_from_slice(data);
+    }
+    #[inline]
+    fn on_encrypt(&self) -> &[u8] {
+        &self.out_buf[..self.out_buf_len]
+    }
+    #[inline]
+    fn right_buf_mark_discard_out(&mut self, len: usize) -> () {
+        self.out_buf.rotate_left(len);
+        self.out_buf_len -= len;
+    }
+}
 
 struct NetworkIoOut {
     out_buf: Vec<u8>,
@@ -62,23 +99,18 @@ struct NetworkIoIn {
 use ytls_server::{TlsLeftIn, TlsLeftOut};
 
 impl TlsLeftOut for NetworkIoOut {
+    #[inline]
     fn send_record_out(&mut self, data: &[u8]) -> () {
         self.out_buf.extend_from_slice(data);
     }
 }
 
 impl TlsLeftIn for NetworkIoIn {
-    /*
-        fn left_bufs_mut(&mut self) -> (mut &[u8], &mut [u8]) {
-            (&self.in_buf[0..self.in_buf_len], &self,out_buf[self.out_buf_len..])
-        }
-        fn left_buf_mark_send_out(&mut self, len: usize) -> () {
-            println!("Sending out {len} bytes");
-            self.out_buf_len += len;
-    }*/
+    #[inline]
     fn left_buf_in(&self) -> &[u8] {
         &self.in_buf[0..self.in_buf_len]
     }
+    #[inline]
     fn left_buf_mark_discard_in(&mut self, len: usize) -> () {
         println!("Discarding {len} bytes");
         // This is overly naive & slow, implement proper rotating buffering scheme
@@ -117,8 +149,6 @@ fn handle_client(mut stream: TcpStream) {
         in_buf: [0; 8192],
         in_buf_len: 0,
     };
-
-    let mut app_buffers = ApplicationIo {};
 
     let rng = rand::rng();
     let crypto_cfg = ytls_rustcrypto::RustCrypto;
@@ -159,7 +189,7 @@ fn handle_client(mut stream: TcpStream) {
     };
 
     let mut tls_ctx = TlsServerCtx::with_required(tls_cfg, crypto_cfg, rng);
-    //let mut tls_ctx = TlsServerCtx::with_config_and_crypto(tls_cfg, crypto_cfg, rng).unwrap();
+    let mut app_buffers = ApplicationIo::default();
 
     loop {
         let b_start = network_in.in_buf_len;
@@ -179,7 +209,6 @@ fn handle_client(mut stream: TcpStream) {
             hex::encode(&network_in.in_buf[b_start..b_start + s])
         );
 
-        // &buf[0..s]
         tls_ctx
             .advance_with(&mut network_in, &mut network_out, &mut app_buffers)
             .unwrap();

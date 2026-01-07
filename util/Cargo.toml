@@ -25,6 +25,7 @@ std = []
 
 [dependencies]
 crypto-bigint = { version = "=0.7.0-rc.10", default-features = false }
+zeroize = { version = "1.8", default-features = false, optional = true, features = ["derive"] }
 
 [package.metadata.docs.rs]
 features = []

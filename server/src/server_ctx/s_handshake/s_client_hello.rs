@@ -19,8 +19,13 @@ use ytls_extensions::{ExtSniProcessor, TlsExtSni};
 use ytls_extensions::{ExtVersionProcessor, TlsExtVersion};
 use ytls_typed::{TlsCipherSuite, TlsExtension};
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ClientHelloProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+use ytls_traits::Tls13KeyScheduleHandshakeSha256;
+
+impl<Config, Crypto, Rng> ClientHelloProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn handle_extension(&mut self, ext_id: u16, ext_data: &[u8]) -> () {
@@ -105,8 +110,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ClientHelloPro
 
 use ytls_extensions::EntrySniKind;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtSniProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtSniProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn sni(&mut self, k: EntrySniKind, name: &[u8]) -> bool {
@@ -128,8 +136,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtSniProcesso
 
 use ytls_typed::Group;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtGroupProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtGroupProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn group(&mut self, group: Group) -> bool {
@@ -141,8 +152,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtGroupProces
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtKeyShareProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtKeyShareProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn key_share(&mut self, g: Group, d: &[u8]) -> bool {
@@ -158,8 +172,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtKeySharePro
 
 use ytls_typed::SignatureAlgorithm;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtSigAlgProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtSigAlgProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn signature_algorithm(&mut self, s_alg: SignatureAlgorithm) -> bool {
@@ -178,8 +195,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtSigAlgProce
 
 use ytls_typed::Version;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtVersionProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtVersionProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn supported_version(&mut self, s_ver: Version) -> bool {
@@ -194,8 +214,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtVersionProc
 
 use ytls_typed::Alpn;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtAlpnProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtAlpnProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn alpn<'r>(&mut self, alpn: Alpn<'r>) -> bool {
@@ -203,8 +226,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtAlpnProcess
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtRecSizeLimitProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtRecSizeLimitProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn record_size_limit(&mut self, lim: u16) -> () {
@@ -212,8 +238,12 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtRecSizeLimi
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtDelegatedCredentialProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtDelegatedCredentialProcessor
+    for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn delegated_credential_signature_algorithm(&mut self, _sa: SignatureAlgorithm) -> bool {
@@ -222,8 +252,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtDelegatedCr
     }
 }
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtPskeProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtPskeProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn pske_mode(&mut self, _pske: PskeKind) -> () {
@@ -233,8 +266,11 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtPskeProcess
 
 use ytls_typed::CertificateCompressKind;
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtCompressCertProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtCompressCertProcessor for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     #[inline]
     fn compress_certificate(&mut self, _alg: CertificateCompressKind) -> () {
@@ -244,8 +280,12 @@ impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtCompressCer
 
 use ytls_typed::{HaeadKind, HkdfKind};
 
-impl<C: TlsServerCtxConfig, Crypto: CryptoConfig, Rng: CryptoRng> ExtEncryptedClientHelloProcessor
-    for ServerHandshakeCtx<C, Crypto, Rng>
+impl<Config, Crypto, Rng> ExtEncryptedClientHelloProcessor
+    for ServerHandshakeCtx<Config, Crypto, Rng>
+where
+    Config: TlsServerCtxConfig,
+    Crypto: CryptoConfig,
+    Rng: CryptoRng,
 {
     fn encrypted_client_hello_outer(
         &mut self,

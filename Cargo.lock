@@ -1473,6 +1473,7 @@ dependencies = [
  "ytls-traits",
  "ytls-typed",
  "ytls-util",
+ "zeroize",
 ]
 
 [[package]]
@@ -1504,6 +1505,7 @@ dependencies = [
  "insta",
  "rstest",
  "sha2",
+ "zeroize",
 ]
 
 [[package]]

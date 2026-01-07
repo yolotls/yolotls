@@ -71,10 +71,7 @@ impl<'r> AlertMsg<'r> {
         self.alert.description
     }
     /// Parse Client Record
-    pub fn client_parse<P: ClientHelloProcessor>(
-        _prc: &mut P,
-        bytes: &'r [u8],
-    ) -> Result<(Self, &'r [u8]), RecordError> {
+    pub fn client_parse(bytes: &'r [u8]) -> Result<(Self, &'r [u8]), RecordError> {
         let (msg, rest) =
             Alert::try_ref_from_prefix(bytes).map_err(|e| RecordError::from_zero_copy(e))?;
 

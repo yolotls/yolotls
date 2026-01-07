@@ -1,15 +1,12 @@
-//! ytls Main traits
+//! ytls I/O traits
 
-//----------------------------------------------------------
-// SendOut is required for I/O layer linkage
-//----------------------------------------------------------
-
-/// TLS State Machine Left (Ciphertext) or "Network" I/O side
+/// TLS State Machine Left (Ciphertext) or "Network" I/O egress side
 pub trait TlsLeftOut {
     /// Send encoded record data out.
     fn send_record_out(&mut self, data: &[u8]) -> ();
 }
 
+/// TLS State Machine Left (Ciphertext) or "Network" I/O ingress side
 pub trait TlsLeftIn {
     /// Provide the Ingress buffer in
     fn left_buf_in(&self) -> &[u8];
@@ -19,5 +16,12 @@ pub trait TlsLeftIn {
     fn left_buf_mark_discard_in(&mut self, _len: usize) -> ();
 }
 
-/// TLS State Machine Left (Cleartext) or "Application" I/O side
-pub trait TlsRight {}
+/// TLS State Machine Right (Cleartext) or "Application" I/O side
+pub trait TlsRight {
+    /// State machine provides decrypted traffic
+    fn on_decrypted(&mut self, _data: &[u8]) -> ();
+    /// State machine asks traffic to be encrypted
+    fn on_encrypt(&self) -> &[u8];
+    /// State machine requires Right I/O to discard encrypted ingress bytes.
+    fn right_buf_mark_discard_out(&mut self, _len: usize) -> ();
+}

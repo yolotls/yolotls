@@ -37,8 +37,10 @@ pub struct WrappedRecord<'r> {
 #[derive(Debug, PartialEq)]
 pub enum WrappedMsgType<'r> {
     Handshake(HandshakeMsg<'r>),
+    Alert(AlertMsg<'r>),
 }
 
+use crate::AlertMsg;
 use crate::HandshakeMsg;
 
 impl<'r> WrappedRecord<'r> {
@@ -58,8 +60,12 @@ impl<'r> WrappedRecord<'r> {
                 let msg = HandshakeMsg::client_wrapped_parse(raw_bytes)?;
                 WrappedMsgType::Handshake(msg)
             }
+            WrappedContentType::Alert => {
+                let (msg, _r_next) = AlertMsg::client_parse(raw_bytes)?;
+                WrappedMsgType::Alert(msg)
+            }
             WrappedContentType::Unknown(_) => return Err(RecordError::Validity),
-            _ => todo!(),
+            _ => todo!("Missing {:?}", rec_type),
         };
         Ok(WrappedRecord { raw_bytes, msg })
     }

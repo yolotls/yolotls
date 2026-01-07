@@ -60,22 +60,63 @@ pub enum Content<'r> {
 
 impl<'r> Record<'r> {
     /// Provide the header associated data
+    #[inline]
     pub fn header_as_bytes(&self) -> &[u8] {
         self.header.as_bytes()
     }
     /// Provide the raw record in bytes without header
+    #[inline]
     pub fn as_bytes(&self) -> &[u8] {
         self.raw_bytes
     }
     /// Provide the Conten Type of the Record
+    #[inline]
     pub fn content_type(&self) -> ContentType {
         self.header.content_type
     }
     /// Provide the Content of the Record
+    #[inline]
     pub fn content(&'r self) -> &'r Content<'r> {
         &self.content
     }
+    /// Only parse appdata in non-handshaking context
+    #[inline]
+    pub fn parse_client_appdata(bytes: &'r [u8]) -> Result<(Record<'r>, &'r [u8]), RecordError> {
+        let (hdr, rest) =
+            RecordHeader::try_ref_from_prefix(bytes).map_err(|e| RecordError::from_zero_copy(e))?;
+
+        if hdr.record_length > 16384 {
+            return Err(RecordError::OverflowLength);
+        }
+        let raw_bytes = &rest[0..usize::from(hdr.record_length)];
+
+        let (content, rest_next) = match hdr.content_type {
+            ContentType::Alert => {
+                let (c, r_next) = AlertMsg::client_parse(rest).unwrap();
+                (Content::Alert(c), r_next)
+            }
+            ContentType::ChangeCipherSpec => {
+                let r_next = &rest[usize::from(hdr.record_length)..];
+                (Content::ChangeCipherSpec, r_next)
+            }
+            ContentType::ApplicationData => {
+                let r_next = &rest[usize::from(hdr.record_length)..];
+                (Content::ApplicationData, r_next)
+            }
+            _ => return Err(RecordError::NotAllowed),
+        };
+
+        Ok((
+            Self {
+                header: hdr,
+                raw_bytes,
+                content,
+            },
+            rest_next,
+        ))
+    }
     /// Parse incoming byte slices into TLS Record types with the given HelloProcessor.
+    #[inline]
     pub fn parse_client<P: ClientHelloProcessor>(
         prc: &mut P,
         bytes: &'r [u8],
@@ -95,7 +136,7 @@ impl<'r> Record<'r> {
                 (Content::Handshake(c), r_next)
             }
             ContentType::Alert => {
-                let (c, r_next) = AlertMsg::client_parse(prc, rest).unwrap();
+                let (c, r_next) = AlertMsg::client_parse(rest).unwrap();
                 (Content::Alert(c), r_next)
             }
             ContentType::ApplicationData => {

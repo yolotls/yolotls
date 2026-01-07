@@ -6,6 +6,8 @@ use crate::{TlsLeftIn, TlsLeftOut, TlsRight};
 #[derive(Debug, PartialEq)]
 pub struct HandshakeComplete;
 
+use crate::SecretStore;
+
 /// Implement to process handshaking part
 pub trait CtxHandshakeProcessor {
     type Error;
@@ -17,14 +19,12 @@ pub trait CtxHandshakeProcessor {
     /// Once handshake is finished, Some(..) is given for the application
     /// state machinery allowing de/encryption.
     #[must_use]
-    fn spin_handshake<Li: TlsLeftIn, Lo: TlsLeftOut>(
+    fn spin_handshake<Li: TlsLeftIn, Lo: TlsLeftOut, Ks: SecretStore>(
         &mut self,
         _left_in: &mut Li,
         _left_out: &mut Lo,
+        _ks: &mut Ks,
     ) -> Result<Option<HandshakeComplete>, Self::Error>;
-    /// Switch to Application context if and when handshake is complete consuming the current context.
-    #[must_use]
-    fn switch_to_application(self) -> Option<impl CtxApplicationProcessor>;
 }
 
 /// Marker for Shutdown being complete
