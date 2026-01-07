@@ -68,18 +68,19 @@ where
                 TlsExtEncryptedClientHello::client_encrypted_hello_cb(self, ext_data)
             }
             _ => {
+                /*
                 println!(
                     "Missing Handle_extensions ext_id: {} / {:?} - ext_adta: {}",
                     ext_id,
                     ext_t,
                     hex::encode(ext_data)
-                );
+                ); */
                 Ok(())
             }
         };
 
         match e_res {
-            Err(e) => println!("- Error: {:?}", e),
+            Err(_e) => {}
             Ok(_) => {}
         }
     }
@@ -289,12 +290,13 @@ where
 {
     fn encrypted_client_hello_outer(
         &mut self,
-        config_id: u8,
-        kdf: HkdfKind,
-        aead: HaeadKind,
-        enc: &[u8],
-        payload: &[u8],
+        _config_id: u8,
+        _kdf: HkdfKind,
+        _aead: HaeadKind,
+        _enc: &[u8],
+        _payload: &[u8],
     ) -> () {
+        /*
         println!(
             "encrypted_client_hello config_id {} kdf {:?} aead {:?} enc.len {} payload.len {}",
             config_id,
@@ -302,6 +304,6 @@ where
             aead,
             enc.len(),
             payload.len()
-        );
+        ); */
     }
 }

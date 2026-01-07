@@ -22,6 +22,7 @@ jobs:
     strategy:
       matrix:
         include:
+          - crate: ytls-server
           - crate: ytls-typed
           - crate: ytls-rustcrypto
           - crate: ytls-traits        
