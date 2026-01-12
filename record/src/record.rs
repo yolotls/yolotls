@@ -115,6 +115,7 @@ impl<'r> Record<'r> {
             rest_next,
         ))
     }
+    //    pub fn parser_server<P: ServerHelloProcessor>(
     /// Parse incoming byte slices into TLS Record types with the given HelloProcessor.
     #[inline]
     pub fn parse_client<P: ClientHelloProcessor>(

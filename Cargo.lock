@@ -1398,6 +1398,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "ytls-client"
+version = "0.0.1"
+dependencies = [
+ "ctutils",
+ "hex",
+ "hex-literal",
+ "pem-rfc7468",
+ "rand",
+ "rand_core",
+ "rstest",
+ "sec1",
+ "ytls-ctx",
+ "ytls-extensions",
+ "ytls-keys",
+ "ytls-record",
+ "ytls-rustcrypto",
+ "ytls-traits",
+ "ytls-typed",
+ "ytls-util",
+ "zeroize",
+]
+
+[[package]]
+name = "ytls-ctx"
+version = "0.0.1"
+dependencies = [
+ "hex",
+ "hex-literal",
+ "rstest",
+ "ytls-record",
+ "ytls-traits",
+]
+
+[[package]]
 name = "ytls-extensions"
 version = "0.0.1"
 dependencies = [

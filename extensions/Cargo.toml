@@ -22,7 +22,7 @@ std = []
 
 [dependencies]
 #hex = "0.4.3"
-ytls-typed = { path = "../typed" }
+ytls-typed = { version = "0.0.1", path = "../typed" }
 
 [package.metadata.docs.rs]
 features = []

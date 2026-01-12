@@ -1,5 +1,6 @@
 //! Record buffer
 
+use crate::builder::b_client_hello::BufStaticClientHello;
 use crate::builder::b_dhs_encrypted_extensions::BufStaticEncryptedExtensions;
 use crate::builder::b_dhs_server_certificate::BufStaticServerCertificates;
 use crate::builder::b_dhs_server_certificate_verify::BufStaticServerCertificateVerify;
@@ -10,6 +11,8 @@ use crate::builder::b_wrap_application_data::BufStaticAppData;
 /// Const generic buffer holder for records
 #[derive(Debug, PartialEq)]
 pub(crate) enum RecordBuffer<const N: usize> {
+    /// Handshake, ClientHello [ClearText]
+    ClientHello(BufStaticClientHello<N>),
     /// Handshake, ServerHello [ClearText]
     ServerHello(BufStaticServerHello<N>),
 }

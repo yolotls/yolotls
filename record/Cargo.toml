@@ -21,8 +21,8 @@ default = []
 std = []
 
 [dependencies]
-ytls-traits = { path = "../traits" }
-#hex = "0.4.3"
+ytls-traits = { version = "0.0.1", path = "../traits" }
+hex = "0.4.3"
 zerocopy = { version = "0.8", default-features = false, features = ["derive"] }
 
 [package.metadata.docs.rs]

@@ -4,6 +4,7 @@ use crate::error::BuilderError;
 use crate::RecordBuffer;
 use crate::WrappedRecordBuffer;
 
+use ytls_traits::ClientHelloBuilder;
 use ytls_traits::EncryptedExtensionsBuilder;
 use ytls_traits::HandshakeBuilder;
 use ytls_traits::ServerCertificateVerifyBuilder;
@@ -190,6 +191,15 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
 
 impl<const N: usize> HandshakeBuilder for StaticRecordBuilder<N> {
     type Error = BuilderError;
+    /// Construct a handshake record featuring a Client Hello from untyped raw data.
+    #[inline]
+    fn client_hello_untyped<S: ClientHelloBuilder>(s: &S) -> Result<Self, Self::Error> {
+        Ok(Self {
+            rec_buf: RecordBuffer::<N>::ClientHello(super::b_client_hello::BufStaticClientHello::<
+                N,
+            >::static_from_untyped(s)?),
+        })
+    }
     /// Construct a Handshake record featuring a Server Hello from untyped raw data.
     #[inline]
     fn server_hello_untyped<S: ServerHelloBuilder>(s: &S) -> Result<Self, Self::Error> {
@@ -202,12 +212,14 @@ impl<const N: usize> HandshakeBuilder for StaticRecordBuilder<N> {
     #[inline]
     fn as_hashing_context(&self) -> &[u8] {
         match self.rec_buf {
+            RecordBuffer::ClientHello(ref h) => &h.as_hashing_context(),
             RecordBuffer::ServerHello(ref h) => &h.as_hashing_context(),
         }
     }
     #[inline]
     fn as_encoded_bytes(&self) -> &[u8] {
         match self.rec_buf {
+            RecordBuffer::ClientHello(ref h) => &h.as_encoded_bytes(),
             RecordBuffer::ServerHello(ref h) => &h.as_encoded_bytes(),
         }
     }
