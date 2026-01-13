@@ -1,6 +1,7 @@
 //! Record buffer
 
 use crate::builder::b_client_hello::BufStaticClientHello;
+use crate::builder::b_dhs_client_handshake_finished::BufStaticClientHandshakeFinished;
 use crate::builder::b_dhs_encrypted_extensions::BufStaticEncryptedExtensions;
 use crate::builder::b_dhs_server_certificate::BufStaticServerCertificates;
 use crate::builder::b_dhs_server_certificate_verify::BufStaticServerCertificateVerify;
@@ -27,6 +28,8 @@ pub(crate) enum WrappedAppRecordBuffer<const N: usize> {
 /// Const generic buffer holder for Wrapped records
 #[derive(Debug, PartialEq)]
 pub(crate) enum WrappedRecordBuffer<const N: usize> {
+    /// AppData/Handshake, Client Handshake Finished [CipherText]
+    ClientHandshakeFinished(BufStaticClientHandshakeFinished<N>),
     /// AppData/Handshake, Server Handshake Finished [CipherText]
     ServerHandshakeFinished(BufStaticServerHandshakeFinished<N>),
     /// AppData/Handshake, Server Certificate/s [CipherText]

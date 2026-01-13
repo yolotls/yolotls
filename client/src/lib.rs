@@ -1,4 +1,4 @@
-//#![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
+#![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
 #![warn(
     clippy::unwrap_used,
     missing_docs,

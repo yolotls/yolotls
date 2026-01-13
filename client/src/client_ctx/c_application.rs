@@ -1,5 +1,7 @@
 //! yTLS Client Application Ctx
 
+mod p_wrapped;
+
 use crate::{CtxError, Rfc8446Error};
 use ytls_traits::CtxApplicationProcessor;
 use ytls_traits::ShutdownComplete;
@@ -11,6 +13,11 @@ use ytls_traits::SecretStore;
 use ytls_record::Content;
 use ytls_record::Record;
 use ytls_util::Nonce12;
+
+use ytls_record::HandshakeMsg;
+use ytls_record::MsgType;
+use ytls_record::WrappedMsgType;
+use ytls_record::WrappedRecord;
 
 #[cfg(feature = "zeroize")]
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -105,7 +112,23 @@ where
                     .decrypt_in_place(&nonce, &additional_data, &mut body[0..body_len], &tag)
                     .map_err(|_| CtxError::Rfc8446(Rfc8446Error::Decrypt))?;
 
-                right.on_decrypted(&body[0..body_len - 1]);
+                let wrapped_rec = WrappedRecord::parse_server_ap(self, &body[0..body_len])
+                    .map_err(|_| CtxError::Rfc8446(Rfc8446Error::Unexpected))?;
+
+                match wrapped_rec.msg() {
+                    WrappedMsgType::Handshake(HandshakeMsg {
+                        msg: MsgType::NewSessionTicket,
+                        ..
+                    }) => {
+                        //
+                    }
+                    WrappedMsgType::ApplicationData => {
+                        //println!("Received {:?}", core::str::from_utf8(&body[0..body_len - 1]));
+                        right.on_decrypted(&body[0..body_len - 1]);
+                    }
+                    WrappedMsgType::Alert(_) => {}
+                    _ => return Err(CtxError::Rfc8446(Rfc8446Error::Unexpected)),
+                }
 
                 let d = right.on_encrypt();
 

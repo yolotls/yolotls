@@ -12,6 +12,7 @@ use zerocopy::byteorder::network_endian::U16 as N16;
 use zerocopy::{Immutable, IntoBytes, KnownLayout, TryFromBytes, Unaligned};
 
 use ytls_traits::ClientHelloProcessor;
+use ytls_traits::ServerRecordProcessor;
 
 /// TLS Record Conten Type
 #[derive(TryFromBytes, IntoBytes, KnownLayout, Immutable, Unaligned)]
@@ -115,7 +116,48 @@ impl<'r> Record<'r> {
             rest_next,
         ))
     }
-    //    pub fn parser_server<P: ServerHelloProcessor>(
+    /// Parse incoming byte slics into TLS Recor types with the given RecordProcessor
+    pub fn parse_server<P: ServerRecordProcessor>(
+        prc: &mut P,
+        bytes: &'r [u8],
+    ) -> Result<(Record<'r>, &'r [u8]), RecordError> {
+        let (hdr, rest) =
+            RecordHeader::try_ref_from_prefix(bytes).map_err(|e| RecordError::from_zero_copy(e))?;
+
+        if hdr.record_length > 8192 {
+            return Err(RecordError::OverflowLength);
+        }
+
+        let raw_bytes = &rest[0..usize::from(hdr.record_length)];
+
+        let (content, rest_next) = match hdr.content_type {
+            ContentType::Handshake => {
+                let (c, r_next) = HandshakeMsg::server_parse(prc, rest).unwrap();
+                (Content::Handshake(c), r_next)
+            }
+            ContentType::Alert => {
+                let (c, r_next) = AlertMsg::client_parse(rest).unwrap();
+                (Content::Alert(c), r_next)
+            }
+            ContentType::ApplicationData => {
+                let r_next = &rest[usize::from(hdr.record_length)..];
+                (Content::ApplicationData, r_next)
+            }
+            ContentType::ChangeCipherSpec => {
+                let r_next = &rest[usize::from(hdr.record_length)..];
+                (Content::ChangeCipherSpec, r_next)
+            }
+        };
+
+        Ok((
+            Self {
+                header: hdr,
+                raw_bytes,
+                content,
+            },
+            rest_next,
+        ))
+    }
     /// Parse incoming byte slices into TLS Record types with the given HelloProcessor.
     #[inline]
     pub fn parse_client<P: ClientHelloProcessor>(
@@ -125,7 +167,7 @@ impl<'r> Record<'r> {
         let (hdr, rest) =
             RecordHeader::try_ref_from_prefix(bytes).map_err(|e| RecordError::from_zero_copy(e))?;
 
-        if hdr.record_length > 16384 {
+        if hdr.record_length > 8196 {
             return Err(RecordError::OverflowLength);
         }
 

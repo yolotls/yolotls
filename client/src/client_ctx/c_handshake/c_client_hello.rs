@@ -18,8 +18,11 @@ where
 {
     #[inline]
     pub(crate) fn do_client_hello<Lo: TlsLeftOut>(&mut self, lo: &mut Lo) -> Result<(), CtxError> {
-        let x25519_ctx = self.crypto.x25519_init(&mut self.rng);
-        let pk: [u8; 32] = x25519_ctx.x25519_public_key();
+        let x25519 = match &self.x25519 {
+            Some(x) => x,
+            None => return Err(CtxError::Bug("Client hello expects X25519 initialized.")),
+        };
+        let pk: [u8; 32] = x25519.x25519_public_key();
 
         let key_share: [u8; 38] = [
             0, 0x24, 0, 0x1d, 0, 0x20, pk[0], pk[1], pk[2], pk[3], pk[4], pk[5], pk[6], pk[7],

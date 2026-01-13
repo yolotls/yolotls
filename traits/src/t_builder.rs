@@ -56,6 +56,12 @@ pub trait WrappedApplicationBuilder {
 /// written to wire.
 pub trait WrappedHandshakeBuilder {
     type Error;
+    /// Build Client Handshake Finished
+    fn client_handshake_finished<S: ClientHandshakeFinishedBuilder>(
+        _: &S,
+    ) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
     /// Build Server Handshake Finished
     fn server_handshake_finished<S: ServerHandshakeFinishedBuilder>(
         _: &S,
@@ -94,6 +100,12 @@ pub trait WrappedHandshakeBuilder {
     /// Provide the full raw encoded bytes including placeholder
     /// tag and record headers
     fn as_encoded_bytes(&self) -> &[u8];
+}
+
+/// Client handshake finished is provided through trait implementation
+pub trait ClientHandshakeFinishedBuilder {
+    /// Provide the hash
+    fn hash_finished(&self) -> &[u8];
 }
 
 /// Server handshake finished is provided through trait implementation

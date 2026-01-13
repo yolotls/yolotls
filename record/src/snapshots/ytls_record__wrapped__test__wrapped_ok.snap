@@ -44,14 +44,7 @@ Ok(
         ],
         msg: Handshake(
             HandshakeMsg {
-                hdr: HandshakeHdr {
-                    msg_type: Finished,
-                    msg_length: [
-                        0,
-                        0,
-                        32,
-                    ],
-                },
+                req_ctx: None,
                 msg: ClientFinished(
                     ClientFinished {
                         hmac: [

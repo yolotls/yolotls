@@ -96,6 +96,11 @@ use ::hkdf::InvalidPrkLength;
 impl CryptoConfig for RustCrypto {
     type PrkError = InvalidPrkLength;
     type Hasher = Sha256Hasher;
+    type X25519 = X25519;
+    #[inline]
+    fn ecdhe_x25519<R: CryptoRng>(rng: &mut R) -> Self::X25519 {
+        X25519::x25519_init(rng)
+    }
     #[inline]
     fn hasher_sha256() -> Self::Hasher {
         Sha256Hasher::sha256_init()

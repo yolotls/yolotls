@@ -1,11 +1,16 @@
 //! yTLS Common Handshake
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub enum HandshakeOrder {
     #[default]
     Created,
     ClientHello,
     ServerHello,
+    EncryptedExtensions,
+    ServerCertificates,
+    ServerCertificateVerify,
+    ServerFinished,
+    ClientFinished,
 }
 
 impl HandshakeOrder {
