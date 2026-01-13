@@ -2,6 +2,9 @@
 
 use ytls_traits::SecretStore;
 
+#[cfg(feature = "zeroize")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
+
 /// KeyStore Application
 #[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct KeyStoreAp {
