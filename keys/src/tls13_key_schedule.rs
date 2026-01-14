@@ -150,6 +150,25 @@ impl<C: CryptoConfig> Tls13KeyScheduleHandshakeSha256 for Tls13KeysHandshakeSha2
         let key_label = HkdfLabelSha256::tls13_hanshake_finished(out_key.len() as u8);
         let _ = hk.hkdf_sha256_expand(&key_label, out_key);
     }
+    fn into_secrets(self) -> ([u8; 32], [u8; 32], [u8; 32]) {
+        (
+            self.handshake_secret,
+            self.client_secret,
+            self.server_secret,
+        )
+    }
+    fn from_secrets(
+        handshake_secret: [u8; 32],
+        client_secret: [u8; 32],
+        server_secret: [u8; 32],
+    ) -> Self {
+        Self {
+            handshake_secret,
+            client_secret,
+            server_secret,
+            _c: PhantomData,
+        }
+    }
     fn finished_handshake(self, handshakes_hash: &[u8; 32]) -> impl Tls13KeyScheduleApSha256 {
         let hkdf = C::hkdf_sha256_init();
 

@@ -4,6 +4,8 @@ use crate::error::BuilderError;
 use crate::RecordBuffer;
 use crate::WrappedRecordBuffer;
 
+use ytls_traits::ClientHandshakeFinishedBuilder;
+use ytls_traits::ClientHelloBuilder;
 use ytls_traits::EncryptedExtensionsBuilder;
 use ytls_traits::HandshakeBuilder;
 use ytls_traits::ServerCertificateVerifyBuilder;
@@ -87,6 +89,7 @@ pub struct WrappedStaticRecordBuilder<const N: usize> {
     rec_buf: WrappedRecordBuffer<N>,
 }
 
+use super::b_dhs_client_handshake_finished::BufStaticClientHandshakeFinished;
 use super::b_dhs_encrypted_extensions::BufStaticEncryptedExtensions;
 use super::b_dhs_server_certificate::BufStaticServerCertificates;
 use super::b_dhs_server_certificate_verify::BufStaticServerCertificateVerify;
@@ -94,7 +97,19 @@ use super::b_dhs_server_handshake_finished::BufStaticServerHandshakeFinished;
 
 impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
     type Error = BuilderError;
+    /// Construct handshake client finished
+    #[inline]
+    fn client_handshake_finished<S: ClientHandshakeFinishedBuilder>(
+        s: &S,
+    ) -> Result<Self, Self::Error> {
+        Ok(Self {
+            rec_buf: WrappedRecordBuffer::<N>::ClientHandshakeFinished(
+                BufStaticClientHandshakeFinished::<N>::static_from_untyped(s)?,
+            ),
+        })
+    }
     /// Construct handshake server finished
+    #[inline]
     fn server_handshake_finished<S: ServerHandshakeFinishedBuilder>(
         s: &S,
     ) -> Result<Self, Self::Error> {
@@ -105,6 +120,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
         })
     }
     /// Construct handshake server certificate/s.
+    #[inline]
     fn server_certificates<S: ServerCertificatesBuilder>(s: &S) -> Result<Self, Self::Error> {
         Ok(Self {
             rec_buf: WrappedRecordBuffer::<N>::ServerCertificates(
@@ -113,6 +129,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
         })
     }
     /// Construct handshake server certificate verify.
+    #[inline]
     fn server_certificate_verify<S: ServerCertificateVerifyBuilder>(
         s: &S,
     ) -> Result<Self, Self::Error> {
@@ -123,6 +140,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
         })
     }
     /// Construct handshake encrypted extensions.
+    #[inline]
     fn encrypted_extensions<S: EncryptedExtensionsBuilder>(s: &S) -> Result<Self, Self::Error> {
         Ok(Self {
             rec_buf: WrappedRecordBuffer::<N>::EncryptedExtensions(BufStaticEncryptedExtensions::<
@@ -139,6 +157,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
             WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.as_disjoint_mut_for_aead(),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.as_disjoint_mut_for_aead(),
             WrappedRecordBuffer::ServerHandshakeFinished(ref mut s) => s.as_disjoint_mut_for_aead(),
+            WrappedRecordBuffer::ClientHandshakeFinished(ref mut s) => s.as_disjoint_mut_for_aead(),
         }
     }
     #[inline]
@@ -148,6 +167,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
             WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.set_auth_tag(new_tag),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.set_auth_tag(new_tag),
             WrappedRecordBuffer::ServerHandshakeFinished(ref mut s) => s.set_auth_tag(new_tag),
+            WrappedRecordBuffer::ClientHandshakeFinished(ref mut s) => s.set_auth_tag(new_tag),
         }
     }
     #[inline]
@@ -157,6 +177,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
             WrappedRecordBuffer::ServerCertificateVerify(ref mut s) => s.as_ciphertext_mut(),
             WrappedRecordBuffer::EncryptedExtensions(ref mut s) => s.as_ciphertext_mut(),
             WrappedRecordBuffer::ServerHandshakeFinished(ref mut s) => s.as_ciphertext_mut(),
+            WrappedRecordBuffer::ClientHandshakeFinished(ref mut s) => s.as_ciphertext_mut(),
         }
     }
     #[inline]
@@ -166,6 +187,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
             WrappedRecordBuffer::ServerCertificateVerify(ref s) => s.wrapped_hash_header_ref(),
             WrappedRecordBuffer::EncryptedExtensions(ref s) => s.wrapped_hash_header_ref(),
             WrappedRecordBuffer::ServerHandshakeFinished(ref s) => s.wrapped_hash_header_ref(),
+            WrappedRecordBuffer::ClientHandshakeFinished(ref s) => s.wrapped_hash_header_ref(),
         }
     }
     #[inline]
@@ -175,6 +197,7 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
             WrappedRecordBuffer::ServerCertificateVerify(ref s) => &s.as_hashing_context_ref(),
             WrappedRecordBuffer::EncryptedExtensions(ref s) => &s.as_hashing_context_ref(),
             WrappedRecordBuffer::ServerHandshakeFinished(ref s) => &s.as_hashing_context_ref(),
+            WrappedRecordBuffer::ClientHandshakeFinished(ref s) => &s.as_hashing_context_ref(),
         }
     }
     #[inline]
@@ -184,12 +207,22 @@ impl<const N: usize> WrappedHandshakeBuilder for WrappedStaticRecordBuilder<N> {
             WrappedRecordBuffer::ServerCertificateVerify(ref s) => &s.as_encoded_bytes(),
             WrappedRecordBuffer::EncryptedExtensions(ref s) => &s.as_encoded_bytes(),
             WrappedRecordBuffer::ServerHandshakeFinished(ref s) => &s.as_encoded_bytes(),
+            WrappedRecordBuffer::ClientHandshakeFinished(ref s) => &s.as_encoded_bytes(),
         }
     }
 }
 
 impl<const N: usize> HandshakeBuilder for StaticRecordBuilder<N> {
     type Error = BuilderError;
+    /// Construct a handshake record featuring a Client Hello from untyped raw data.
+    #[inline]
+    fn client_hello_untyped<S: ClientHelloBuilder>(s: &S) -> Result<Self, Self::Error> {
+        Ok(Self {
+            rec_buf: RecordBuffer::<N>::ClientHello(super::b_client_hello::BufStaticClientHello::<
+                N,
+            >::static_from_untyped(s)?),
+        })
+    }
     /// Construct a Handshake record featuring a Server Hello from untyped raw data.
     #[inline]
     fn server_hello_untyped<S: ServerHelloBuilder>(s: &S) -> Result<Self, Self::Error> {
@@ -202,12 +235,14 @@ impl<const N: usize> HandshakeBuilder for StaticRecordBuilder<N> {
     #[inline]
     fn as_hashing_context(&self) -> &[u8] {
         match self.rec_buf {
+            RecordBuffer::ClientHello(ref h) => &h.as_hashing_context(),
             RecordBuffer::ServerHello(ref h) => &h.as_hashing_context(),
         }
     }
     #[inline]
     fn as_encoded_bytes(&self) -> &[u8] {
         match self.rec_buf {
+            RecordBuffer::ClientHello(ref h) => &h.as_encoded_bytes(),
             RecordBuffer::ServerHello(ref h) => &h.as_encoded_bytes(),
         }
     }

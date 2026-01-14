@@ -11,7 +11,6 @@ repository = "https://github.com/yolotls/yolotls"
 categories = ["science"]
 
 [dev-dependencies]
-
 rstest = "0.26"
 hex-literal = "1.1"
 insta = "1.45"

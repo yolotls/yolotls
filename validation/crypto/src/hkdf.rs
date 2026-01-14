@@ -43,7 +43,7 @@ const fn tls13_label_derived() -> [u8; 49] {
 
 #[rstest]
 #[case(Sha256Hkdf::sha256_hkdf_from_prk(&hex!("33ad0a1c607ec03b09e6cd9893680ce210adf300aa1f2660e1b22e10f170f92a")).unwrap())]
-fn hkdf_from_psk_expand_ok<I: CryptoSha256HkdfGenProcessor>(#[case] mut h: I) {
+fn hkdf_from_psk_expand_ok<I: CryptoSha256HkdfGenProcessor>(#[case] h: I) {
     let mut derived_secret: [u8; 32] = [0; 32];
     let label_derived = tls13_label_derived();
     match h.hkdf_sha256_expand(&label_derived, &mut derived_secret) {
@@ -60,7 +60,7 @@ fn hkdf_extract_expand_ok<I: CryptoSha256HkdfExtractProcessor>(#[case] h: I) {
     // Zero Hashlen IKM & Salt are used when PSK is not in use
     let ikm: [u8; 32] = [0; 32];
     let salt: [u8; 1] = [0; 1];
-    let (_early_secret, mut hk_early) = h.hkdf_sha256_extract(Some(&salt[..]), &ikm);
+    let (_early_secret, hk_early) = h.hkdf_sha256_extract(Some(&salt[..]), &ikm);
 
     let mut derived_secret: [u8; 32] = [0; 32];
     let label_derived = tls13_label_derived();

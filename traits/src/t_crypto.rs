@@ -12,6 +12,13 @@ pub use rand_core::CryptoRng;
 /// implementer can provide a mix of used primitives.
 pub trait CryptoConfig {
     type PrkError;
+    // TODO: cfg-gate supported hashers
+    type Hasher: CryptoSha256TranscriptProcessor;
+    type X25519: CryptoX25519Processor;
+    /// Provide the concrete ECDHE providing the X25519
+    fn ecdhe_x25519<R: CryptoRng>(_: &mut R) -> Self::X25519;
+    /// Provide the concrete hasher containing SHA256 hasher
+    fn hasher_sha256() -> Self::Hasher;
     /// ECDSA secp256p1 Signature processor
     fn sign_p256_init(_key: &[u8]) -> Option<impl CryptoSignerP256Processor>;
     /// AEAD ChaCha20Poly1305 with Key and Nonce / IV

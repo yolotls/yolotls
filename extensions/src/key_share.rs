@@ -13,6 +13,31 @@ pub trait ExtKeyShareProcessor {
 pub struct TlsExtKeyShare {}
 
 impl TlsExtKeyShare {
+    /// Extract Server originated selected key share
+    #[inline]
+    pub fn server_key_share_cb<P: ExtKeyShareProcessor>(
+        p: &mut P,
+        mut key_share_raw: &[u8],
+    ) -> Result<(), TlsExtError> {
+        let ks_id_b = key_share_raw
+            .split_off(..2)
+            .ok_or(TlsExtError::InvalidLength)?;
+        let ks_id = u16::from_be_bytes([ks_id_b[0], ks_id_b[1]]);
+        let ks_len_b = key_share_raw
+            .split_off(..2)
+            .ok_or(TlsExtError::InvalidLength)?;
+
+        let ks_len = u16::from_be_bytes([ks_len_b[0], ks_len_b[1]]);
+
+        if key_share_raw.len() != ks_len as usize {
+            return Err(TlsExtError::InvalidLength);
+        }
+        let group: Group = ks_id.into();
+        p.key_share(group, key_share_raw);
+
+        Ok(())
+    }
+    /// Extract Client originated key shares
     #[inline]
     pub fn client_key_share_cb<P: ExtKeyShareProcessor>(
         p: &mut P,
@@ -96,7 +121,7 @@ impl TlsExtKeyShare {
 // 04 75 4f 97 aa
 //-----------------------------------
 #[cfg(test)]
-mod test {
+mod test_client_originated {
     use super::*;
     use hex_literal::hex;
     use rstest::rstest;
@@ -137,6 +162,53 @@ mod test {
         let key_share_raw = hex::decode(ks_raw_t).unwrap();
         let mut tester = Tester::default();
         let res = TlsExtKeyShare::client_key_share_cb(&mut tester, &key_share_raw);
+        assert_eq!(expected_res, res);
+        assert_eq!(expected_tester, tester);
+    }
+}
+
+#[cfg(test)]
+mod test_server_originated {
+    use super::*;
+    use hex_literal::hex;
+    use rstest::rstest;
+    use ytls_typed::Group;
+
+    #[derive(Debug, PartialEq)]
+    struct GroupSeen {
+        group: Group,
+        pk: Vec<u8>,
+    }
+
+    #[derive(Debug, Default, PartialEq)]
+    struct Tester {
+        groups: Vec<GroupSeen>,
+    }
+
+    impl ExtKeyShareProcessor for Tester {
+        fn key_share(&mut self, g: Group, pk: &[u8]) -> bool {
+            self.groups.push(GroupSeen {
+                group: g,
+                pk: pk.to_vec(),
+            });
+            false
+        }
+    }
+
+    #[rstest]
+    #[case(
+        "001d00203ee4b7e92617bac4d84bfdb47760fafc9889c5f509cc1017c9f7411fda3bb029",
+        Tester { groups: vec![GroupSeen { group: Group::X25519, pk: vec![62, 228, 183, 233, 38, 23, 186, 196, 216, 75, 253, 180, 119, 96, 250, 252, 152, 137, 197, 245, 9, 204, 16, 23, 201, 247, 65, 31, 218, 59, 176, 41] }] },
+        Ok(())
+    )]
+    fn key_share_ok(
+        #[case] ks_raw_t: &str,
+        #[case] expected_tester: Tester,
+        #[case] expected_res: Result<(), TlsExtError>,
+    ) {
+        let key_share_raw = hex::decode(ks_raw_t).unwrap();
+        let mut tester = Tester::default();
+        let res = TlsExtKeyShare::server_key_share_cb(&mut tester, &key_share_raw);
         assert_eq!(expected_res, res);
         assert_eq!(expected_tester, tester);
     }

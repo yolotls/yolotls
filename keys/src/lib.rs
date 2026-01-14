@@ -28,3 +28,7 @@ pub use error::*;
 mod tls13_key_schedule;
 #[doc(inline)]
 pub use tls13_key_schedule::*;
+
+mod key_store;
+#[doc(inline)]
+pub use key_store::*;

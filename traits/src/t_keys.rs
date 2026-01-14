@@ -61,6 +61,12 @@ pub trait Tls13KeyScheduleHandshakeSha256 {
     fn handshake_client_finished_key(&self, _key: &mut [u8]) -> ();
     /// Expands Key for the Server to finish Handshake
     fn handshake_server_finished_key(&self, _key: &mut [u8]) -> ();
+    fn into_secrets(self) -> ([u8; 32], [u8; 32], [u8; 32]);
+    fn from_secrets(
+        _shared_secret: [u8; 32],
+        _client_secret: [u8; 32],
+        _server_secret: [u8; 32],
+    ) -> Self;
     /// Upon finishing handshake, proceed to Master Key schedule with the final hash of the hanshakes.
     ///
     /// ## Hash Input

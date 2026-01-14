@@ -9,6 +9,12 @@ mod static_record;
 pub use static_record::*;
 
 //-------------------------------
+// Client Handshakes
+//-------------------------------
+mod b_client_hello;
+mod b_dhs_client_handshake_finished;
+
+//-------------------------------
 // Server Handshakes
 //-------------------------------
 mod b_server_hello;

@@ -353,6 +353,7 @@ where
                             );
                                 */
                         }
+                        _ => return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected)),
                     }
                 }
                 Content::Alert(_alert) => {

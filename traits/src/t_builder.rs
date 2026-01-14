@@ -9,6 +9,10 @@
 /// the required inputs are through the client/server contextes.
 pub trait HandshakeBuilder {
     type Error;
+    /// Build Client Hello
+    fn client_hello_untyped<S: ClientHelloBuilder>(_: &S) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
     /// Build Server Hello
     fn server_hello_untyped<S: ServerHelloBuilder>(_: &S) -> Result<Self, Self::Error>
     where
@@ -52,6 +56,12 @@ pub trait WrappedApplicationBuilder {
 /// written to wire.
 pub trait WrappedHandshakeBuilder {
     type Error;
+    /// Build Client Handshake Finished
+    fn client_handshake_finished<S: ClientHandshakeFinishedBuilder>(
+        _: &S,
+    ) -> Result<Self, Self::Error>
+    where
+        Self: Sized;
     /// Build Server Handshake Finished
     fn server_handshake_finished<S: ServerHandshakeFinishedBuilder>(
         _: &S,
@@ -92,6 +102,12 @@ pub trait WrappedHandshakeBuilder {
     fn as_encoded_bytes(&self) -> &[u8];
 }
 
+/// Client handshake finished is provided through trait implementation
+pub trait ClientHandshakeFinishedBuilder {
+    /// Provide the hash
+    fn hash_finished(&self) -> &[u8];
+}
+
 /// Server handshake finished is provided through trait implementation
 pub trait ServerHandshakeFinishedBuilder {
     /// Provide the hash
@@ -123,6 +139,27 @@ pub trait EncryptedExtensionsBuilder {
     // TODO
     // Provide the encrypted extensions list if any
     //fn encrypted_extension_list(&self) -> &[u16];
+}
+
+/// Use to generate ClientHello with the Handshake builder.
+/// Provide the optional / required data to construct it.
+pub trait ClientHelloBuilder {
+    /// This should return [3, 1] for TLS 1.0 compat
+    fn legacy_version(&self) -> &[u8; 2];
+    /// This should return [3, 3] for TLS 1.2 compat
+    fn legacy_client_version(&self) -> &[u8; 2];
+    /// Provide client random
+    fn client_random(&self) -> &[u8; 32];
+    /// Middlebox compatibility, provide random data
+    fn legacy_session_id(&self) -> &[u8];
+    /// Provide supported cipher suites list
+    fn cipher_suites(&self) -> &[[u8; 2]];
+    /// This should return [00] for no compression
+    fn supported_legacy_insecure_compression_methods(&self) -> &[u8];
+    /// Extensions used list
+    fn extensions_list(&self) -> &[u16];
+    /// Given extension relevant encoded data. See [`ytls_extensions`] to encode.
+    fn extension_data(&self, _id: u16) -> &[u8];
 }
 
 /// Use to generate ServerHello with the HandshakeBuilder.

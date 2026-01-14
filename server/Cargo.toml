@@ -26,12 +26,12 @@ std = []
 zeroize = ["dep:zeroize", "ytls-util/zeroize", "ytls-keys/zeroize"]
 
 [dependencies]
-ytls-extensions = { path = "../extensions" }
-ytls-keys = { path = "../keys" }
-ytls-traits = { path = "../traits" }
-ytls-record = { path = "../record" }
-ytls-typed = { path = "../typed" }
-ytls-util = { path = "../util" }
+ytls-extensions = { version = "0.0.1", path = "../extensions" }
+ytls-keys = { version = "0.0.1", path = "../keys" }
+ytls-traits = { version = "0.0.1", path = "../traits" }
+ytls-record = { version = "0.0.1", path = "../record" }
+ytls-typed = { version = "0.0.1", path = "../typed" }
+ytls-util = { version = "0.0.1", path = "../util" }
 rand_core = { version = "=0.10.0-rc-2", default-features = false }
 ctutils = { version = "0.3", default-features = false }
 # temp debug

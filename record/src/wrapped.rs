@@ -1,6 +1,8 @@
 //! Wrapped Record
 
 use crate::error::RecordError;
+use ytls_traits::ServerApRecordProcessor;
+use ytls_traits::ServerWrappedRecordProcessor;
 
 #[derive(Debug, PartialEq)]
 pub enum WrappedContentType {
@@ -36,6 +38,7 @@ pub struct WrappedRecord<'r> {
 
 #[derive(Debug, PartialEq)]
 pub enum WrappedMsgType<'r> {
+    ApplicationData,
     Handshake(HandshakeMsg<'r>),
     Alert(AlertMsg<'r>),
 }
@@ -47,6 +50,54 @@ impl<'r> WrappedRecord<'r> {
     #[inline]
     pub fn msg(&self) -> &WrappedMsgType<'r> {
         &self.msg
+    }
+    #[inline]
+    pub fn parse_server_ap<P: ServerApRecordProcessor>(
+        prc: &mut P,
+        wrapped_data: &'r [u8],
+    ) -> Result<WrappedRecord<'r>, RecordError> {
+        let w_len = wrapped_data.len();
+
+        let rec_type: WrappedContentType = wrapped_data[w_len - 1].into();
+        let raw_bytes = &wrapped_data[0..w_len - 1];
+
+        let msg: WrappedMsgType<'_> = match rec_type {
+            WrappedContentType::Handshake => {
+                let msg = HandshakeMsg::server_wrapped_ap_parse(prc, raw_bytes)?;
+                WrappedMsgType::Handshake(msg)
+            }
+            WrappedContentType::ApplicationData => WrappedMsgType::ApplicationData,
+            WrappedContentType::Alert => {
+                let (msg, _r_next) = AlertMsg::client_parse(raw_bytes)?;
+                WrappedMsgType::Alert(msg)
+            }
+            _ => todo!("Missing {:?}", rec_type),
+        };
+        Ok(WrappedRecord { raw_bytes, msg })
+    }
+    #[inline]
+    pub fn parse_server<P: ServerWrappedRecordProcessor>(
+        prc: &mut P,
+        wrapped_data: &'r [u8],
+    ) -> Result<WrappedRecord<'r>, RecordError> {
+        let w_len = wrapped_data.len();
+
+        let rec_type: WrappedContentType = wrapped_data[w_len - 1].into();
+        let raw_bytes = &wrapped_data[0..w_len - 1];
+
+        let msg = match rec_type {
+            WrappedContentType::Handshake => {
+                let msg = HandshakeMsg::server_wrapped_hs_parse(prc, raw_bytes)?;
+                WrappedMsgType::Handshake(msg)
+            }
+            WrappedContentType::Alert => {
+                let (msg, _r_next) = AlertMsg::client_parse(raw_bytes)?;
+                WrappedMsgType::Alert(msg)
+            }
+            WrappedContentType::Unknown(_) => return Err(RecordError::Validity),
+            _ => todo!("Missing {:?}", rec_type),
+        };
+        Ok(WrappedRecord { raw_bytes, msg })
     }
     #[inline]
     pub fn parse_client(wrapped_data: &'r [u8]) -> Result<WrappedRecord<'r>, RecordError> {

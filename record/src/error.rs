@@ -12,12 +12,26 @@ pub enum RecordError {
     OverflowLength,
     /// Client Hello within Record
     ClientHello(ClientHelloError),
+    /// Server Hello within Record
+    ServerHello(ServerHelloError),
     /// Not allowed within Wrapped record
     NotAllowed,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum ClientHelloError {
+    /// Session Id <= 32 bytes
+    OverflowSesId,
+    /// Cipher Suites <= 65534 bytes
+    OverflowCipherSuites,
+    /// One of the extensions is invalid
+    Extensions(ExtensionsError),
+    /// One of the Cipher Suites is invalid
+    CipherSuites(CipherSuitesError),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ServerHelloError {
     /// Session Id <= 32 bytes
     OverflowSesId,
     /// Cipher Suites <= 65534 bytes
