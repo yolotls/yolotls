@@ -1,7 +1,7 @@
 //! Server Ctx
 
+use crate::CtxError;
 use crate::TlsServerCtxConfig;
-use crate::TlsServerCtxError;
 
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;
@@ -58,7 +58,7 @@ where
         li: &mut Li,
         lo: &mut Lo,
         r: &mut R,
-    ) -> Result<(), TlsServerCtxError> {
+    ) -> Result<(), CtxError> {
         let sw_ap = if let CurCtx::Handshake(ref mut h) = self.cur {
             match h.spin_handshake(li, lo, &mut self.ks)? {
                 Some(HandshakeComplete) => {

@@ -1,6 +1,6 @@
 //! yTLS Server Context: Client Finished
 
-use crate::{Rfc8446Error, ServerHandshakeCtx, TlsServerCtxConfig, TlsServerCtxError};
+use crate::{CtxError, Rfc8446Error, ServerHandshakeCtx, TlsServerCtxConfig};
 use ytls_traits::CryptoSha256HmacProcessor;
 use ytls_traits::{CryptoConfig, CryptoRng};
 
@@ -14,15 +14,12 @@ where
     Crypto: CryptoConfig,
     Rng: CryptoRng,
 {
-    pub(crate) fn check_client_finished<'r>(
-        &self,
-        f: &ClientFinished<'r>,
-    ) -> Result<(), TlsServerCtxError> {
+    pub(crate) fn check_client_finished<'r>(&self, f: &ClientFinished<'r>) -> Result<(), CtxError> {
         let expected_hmac_s = f.hmac();
 
         // TODO SHA384
         if expected_hmac_s.len() != 32 {
-            return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected));
+            return Err(CtxError::Rfc8446(Rfc8446Error::Unexpected));
         }
 
         let mut expected_hmac: [u8; 32] = [0; 32];
@@ -31,7 +28,7 @@ where
         let hash_finished = match self.hash_finished {
             Some(h) => h,
             None => {
-                return Err(TlsServerCtxError::Bug(
+                return Err(CtxError::Bug(
                     "Hash finished was not guarded for check_client_finished",
                 ))
             }
@@ -54,7 +51,7 @@ where
         let cmp = finished_hmac.ct_ne(&expected_hmac);
 
         if cmp.to_u8() == 1 {
-            return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Decrypt));
+            return Err(CtxError::Rfc8446(Rfc8446Error::Decrypt));
         }
 
         Ok(())

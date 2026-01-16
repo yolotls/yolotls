@@ -1,6 +1,6 @@
 //! yTLS Server Application Ctx
 
-use crate::{Rfc8446Error, TlsServerCtxError};
+use crate::{CtxError, Rfc8446Error};
 use ytls_traits::CtxApplicationProcessor;
 use ytls_traits::ShutdownComplete;
 use ytls_traits::{TlsLeftIn, TlsLeftOut, TlsRight};
@@ -58,7 +58,7 @@ impl<Crypto> CtxApplicationProcessor for ServerApplicationCtx<Crypto>
 where
     Crypto: CryptoConfig,
 {
-    type Error = TlsServerCtxError;
+    type Error = CtxError;
 
     fn spin_application<Li: TlsLeftIn, Lo: TlsLeftOut, R: TlsRight>(
         &mut self,
@@ -79,7 +79,7 @@ where
 
         loop {
             let (rec, remaining) =
-                Record::parse_client_appdata(data).map_err(|e| TlsServerCtxError::Record(e))?;
+                Record::parse_client_appdata(data).map_err(|e| CtxError::Record(e))?;
 
             consumed = init_len - remaining.len();
 
@@ -87,7 +87,7 @@ where
                 let key = self.application_client_key;
                 let nonce: [u8; 12] = match self.application_client_iv.use_and_incr() {
                     Some(cur) => cur,
-                    None => return Err(TlsServerCtxError::ExhaustedIv),
+                    None => return Err(CtxError::ExhaustedIv),
                 };
 
                 let cipher = Crypto::aead_chaha20poly1305(&key);
@@ -103,7 +103,7 @@ where
                 use ytls_traits::CryptoChaCha20Poly1305Processor;
                 cipher
                     .decrypt_in_place(&nonce, &additional_data, &mut body[0..body_len], &tag)
-                    .map_err(|_| TlsServerCtxError::Rfc8446(Rfc8446Error::Decrypt))?;
+                    .map_err(|_| CtxError::Rfc8446(Rfc8446Error::Decrypt))?;
 
                 right.on_decrypted(&body[0..body_len - 1]);
 
@@ -113,7 +113,7 @@ where
                     let server_key = self.application_server_key;
                     let server_nonce: [u8; 12] = match self.application_server_iv.use_and_incr() {
                         Some(cur) => cur,
-                        None => return Err(TlsServerCtxError::ExhaustedIv),
+                        None => return Err(CtxError::ExhaustedIv),
                     };
 
                     use ytls_record::WrappedAppStaticRecordBuilder;
@@ -121,7 +121,7 @@ where
 
                     let mut record_encrypt =
                         WrappedAppStaticRecordBuilder::<8192>::application_data(d)
-                            .map_err(TlsServerCtxError::Builder)?;
+                            .map_err(CtxError::Builder)?;
 
                     let cipher = Crypto::aead_chaha20poly1305(&server_key);
 
@@ -137,7 +137,7 @@ where
                             )
                             .unwrap()
                     } else {
-                        return Err(TlsServerCtxError::Bug(
+                        return Err(CtxError::Bug(
                             "Disjoint for AEAD failed at Application data.",
                         ));
                     };
