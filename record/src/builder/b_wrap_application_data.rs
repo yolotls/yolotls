@@ -114,7 +114,8 @@ mod test_ok_basic_hash_finished {
     fn static_8192_basic() {
         let tester = b"PING".as_ref();
 
-        let b = BufStaticAppData::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticAppData::<8192>::static_from_untyped(&tester)
+            .expect("Test: Builder: AppData failure");
 
         let h = hex::encode(b.as_encoded_bytes());
 

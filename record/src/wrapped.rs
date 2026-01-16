@@ -18,6 +18,18 @@ pub enum WrappedContentType {
     Unknown(u8),
 }
 
+impl From<WrappedContentType> for &'static str {
+    fn from(t: WrappedContentType) -> &'static str {
+        match t {
+            WrappedContentType::ChangeCipherSpec => "ChangeCipherSpec",
+            WrappedContentType::Alert => "Alert",
+            WrappedContentType::Handshake => "Handshake",
+            WrappedContentType::ApplicationData => "ApplicationData",
+            WrappedContentType::Unknown(_) => "Unknown",
+        }
+    }
+}
+
 impl From<u8> for WrappedContentType {
     fn from(i: u8) -> Self {
         match i {
@@ -71,7 +83,12 @@ impl<'r> WrappedRecord<'r> {
                 let (msg, _r_next) = AlertMsg::client_parse(raw_bytes)?;
                 WrappedMsgType::Alert(msg)
             }
-            _ => todo!("Missing {:?}", rec_type),
+            _ => {
+                return Err(RecordError::NotImplemented(
+                    rec_type.into(),
+                    "Wrapped::parse_server_ap",
+                ))
+            }
         };
         Ok(WrappedRecord { raw_bytes, msg })
     }
@@ -95,7 +112,12 @@ impl<'r> WrappedRecord<'r> {
                 WrappedMsgType::Alert(msg)
             }
             WrappedContentType::Unknown(_) => return Err(RecordError::Validity),
-            _ => todo!("Missing {:?}", rec_type),
+            _ => {
+                return Err(RecordError::NotImplemented(
+                    rec_type.into(),
+                    "Wrapped::parse_server",
+                ))
+            }
         };
         Ok(WrappedRecord { raw_bytes, msg })
     }
@@ -116,7 +138,12 @@ impl<'r> WrappedRecord<'r> {
                 WrappedMsgType::Alert(msg)
             }
             WrappedContentType::Unknown(_) => return Err(RecordError::Validity),
-            _ => todo!("Missing {:?}", rec_type),
+            _ => {
+                return Err(RecordError::NotImplemented(
+                    rec_type.into(),
+                    "Wrapped::parse_server_ap",
+                ))
+            }
         };
         Ok(WrappedRecord { raw_bytes, msg })
     }

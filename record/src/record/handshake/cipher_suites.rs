@@ -84,7 +84,10 @@ mod test {
             suites_encountered: vec![],
         };
 
-        let r = CipherSuites::parse_cipher_suites(&mut prc, &hex::decode(input).unwrap());
+        let r = CipherSuites::parse_cipher_suites(
+            &mut prc,
+            &hex::decode(input).expect("test: Cipher Suites parse fail"),
+        );
         assert_eq!(r, res);
         assert_eq!(exp, prc);
     }

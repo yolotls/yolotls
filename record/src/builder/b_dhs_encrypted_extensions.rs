@@ -180,7 +180,8 @@ mod test_ok_smol_barebones {
     fn static_8192_basic() {
         let tester = Tester;
 
-        let b = BufStaticEncryptedExtensions::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticEncryptedExtensions::<8192>::static_from_untyped(&tester)
+            .expect("Test: Builder: EncryptedExtensions failure");
 
         let h = hex::encode(b.as_encoded_bytes());
 

@@ -16,6 +16,8 @@ pub enum RecordError {
     ServerHello(ServerHelloError),
     /// Not allowed within Wrapped record
     NotAllowed,
+    /// Missing an implementation - Implementation, extra information
+    NotImplemented(&'static str, &'static str),
 }
 
 #[derive(Debug, PartialEq)]

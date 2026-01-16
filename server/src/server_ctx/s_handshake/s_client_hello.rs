@@ -29,9 +29,14 @@ where
 {
     #[inline]
     fn handle_extension(&mut self, ext_id: u16, ext_data: &[u8]) -> () {
-        let ext_t: TlsExtension = ext_id.try_into().unwrap();
+        let ext_t: Result<TlsExtension, _> = ext_id.try_into();
 
-        let e_res = match ext_t {
+        let ext = match ext_t {
+            Ok(et) => et,
+            Err(_) => return (),
+        };
+
+        let e_res = match ext {
             TlsExtension::ServerNameIndication => TlsExtSni::client_hello_cb(self, ext_data),
             TlsExtension::SupportedGroups => TlsExtGroup::client_group_cb(self, ext_data),
             TlsExtension::KeyShare => TlsExtKeyShare::client_key_share_cb(self, ext_data),
@@ -68,13 +73,7 @@ where
                 TlsExtEncryptedClientHello::client_encrypted_hello_cb(self, ext_data)
             }
             _ => {
-                /*
-                println!(
-                    "Missing Handle_extensions ext_id: {} / {:?} - ext_adta: {}",
-                    ext_id,
-                    ext_t,
-                    hex::encode(ext_data)
-                ); */
+                // TODO: Handle missing extension
                 Ok(())
             }
         };

@@ -185,7 +185,8 @@ mod test_ok_basic_hash_finished {
     fn static_8192_basic() {
         let tester = Tester;
 
-        let b = BufStaticClientHandshakeFinished::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticClientHandshakeFinished::<8192>::static_from_untyped(&tester)
+            .expect("Test: Builder: ClientHandshakeFinished fail");
 
         let h = hex::encode(b.as_encoded_bytes());
 

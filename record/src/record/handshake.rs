@@ -49,6 +49,25 @@ pub enum HandshakeType {
     Unknown(u8),
 }
 
+impl From<HandshakeType> for &'static str {
+    fn from(t: HandshakeType) -> &'static str {
+        match t {
+            HandshakeType::ClientHello => "ClientHello",
+            HandshakeType::ServerHello => "ServerHello",
+            HandshakeType::NewSessionTicket => "NewSessionTicket",
+            HandshakeType::EndOfEarlyData => "EndOfEarlyData",
+            HandshakeType::EncryptedExtensions => "EncryptedExtensins",
+            HandshakeType::Certificate => "Certificate",
+            HandshakeType::CertificateRequest => "CertificateRequest",
+            HandshakeType::CertificateVerify => "CertificateVerify",
+            HandshakeType::Finished => "Finished",
+            HandshakeType::KeyUpdate => "KeyUpdate",
+            HandshakeType::MessageHash => "MessageHash",
+            HandshakeType::Unknown(_) => "Unknown",
+        }
+    }
+}
+
 impl From<u8> for HandshakeType {
     fn from(s: u8) -> HandshakeType {
         match s {
@@ -125,7 +144,12 @@ impl<'r> HandshakeMsg<'r> {
 
         let msg: MsgType<'_> = match msg_type {
             HandshakeType::NewSessionTicket => MsgType::NewSessionTicket,
-            _ => todo!("Handshake parsing missing {:?}", msg_type),
+            _ => {
+                return Err(RecordError::NotImplemented(
+                    msg_type.into(),
+                    "HandshakeMsg::client_wrapped_ap_parse",
+                ))
+            }
         };
         Ok(Self { req_ctx, msg })
     }
@@ -139,7 +163,7 @@ impl<'r> HandshakeMsg<'r> {
 
         let msg = match msg_type {
             HandshakeType::EncryptedExtensions => {
-                // todo support these
+                // TODO: support these
                 match rest {
                     &[0, 0] => {}
                     _ => return Err(RecordError::Validity),
@@ -158,7 +182,12 @@ impl<'r> HandshakeMsg<'r> {
                 ServerFinished::parse_wrapped(prc, rest)?;
                 MsgType::ServerFinished
             }
-            _ => todo!("Handshake parsing missing {:?}", msg_type),
+            _ => {
+                return Err(RecordError::NotImplemented(
+                    msg_type.into(),
+                    "HandshakeMsg::server_wrapped_parse",
+                ))
+            }
         };
 
         Ok(Self { req_ctx, msg })
@@ -173,7 +202,12 @@ impl<'r> HandshakeMsg<'r> {
                 let c_finished = ClientFinished::parse_wrapped(rest)?;
                 MsgType::ClientFinished(c_finished)
             }
-            _ => todo!("Handshake parsing missing {:?}", msg_type),
+            _ => {
+                return Err(RecordError::NotImplemented(
+                    msg_type.into(),
+                    "HandshakeMsg::client_wrapped_parse",
+                ))
+            }
         };
 
         Ok(Self { req_ctx, msg })
@@ -190,7 +224,12 @@ impl<'r> HandshakeMsg<'r> {
                 let (s_hello, r_next) = ServerHello::parse(prc, rest)?;
                 (MsgType::ServerHello(s_hello), r_next)
             }
-            _ => todo!("Missing msg_type {:?}", msg_type),
+            _ => {
+                return Err(RecordError::NotImplemented(
+                    msg_type.into(),
+                    "HandshakeMsg::server_parse",
+                ))
+            }
         };
 
         Ok((Self { req_ctx, msg }, rest_next))
@@ -207,7 +246,12 @@ impl<'r> HandshakeMsg<'r> {
                 let (c_hello, r_next) = ClientHello::parse(prc, rest)?;
                 (MsgType::ClientHello(c_hello), r_next)
             }
-            _ => todo!(),
+            _ => {
+                return Err(RecordError::NotImplemented(
+                    msg_type.into(),
+                    "HandshakeMsg::client_parse",
+                ))
+            }
         };
 
         Ok((Self { req_ctx, msg }, rest_next))

@@ -172,7 +172,7 @@ mod test_ok_no_extensions {
         }
         /// Given extension relevant encoded data. See [`ytls_extensions`] to encode.
         fn extension_data(&self, _ext: u16) -> &[u8] {
-            todo!()
+            unreachable!()
         }
     }
 
@@ -232,7 +232,8 @@ mod test_ok_no_extensions {
     fn static_8192_basic() {
         let tester = Tester;
 
-        let b = BufStaticServerHello::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticServerHello::<8192>::static_from_untyped(&tester)
+            .expect("Test: Builder: ServerHello failure");
 
         let h = hex::encode(b.as_encoded_bytes());
 
@@ -366,7 +367,8 @@ mod test_ok_yes_two_extensions {
     fn static_8192_extensions_basic() {
         let tester = Tester;
 
-        let b = BufStaticServerHello::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticServerHello::<8192>::static_from_untyped(&tester)
+            .expect("Test: Builder: ServerHello failure");
 
         let h = hex::encode(b.as_encoded_bytes());
 

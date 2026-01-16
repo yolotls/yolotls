@@ -80,7 +80,7 @@ where
         {
             cipher
                 .encrypt_in_place(&nonce, &additional_data, encrypt_payload.as_mut())
-                .unwrap()
+                .map_err(|_| CtxError::Bug("Encrypt failure"))?
         } else {
             return Err(CtxError::Bug(
                 "Disjoint for AEAD failed at client finished.",
