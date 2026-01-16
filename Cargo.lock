@@ -1399,7 +1399,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-client"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "ctutils",
  "hex",
@@ -1422,7 +1422,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-ctx"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "hex",
  "hex-literal",
@@ -1444,7 +1444,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-keys"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "hex",
  "hex-literal",
@@ -1459,7 +1459,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-record"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "hex",
  "hex-literal",
@@ -1471,7 +1471,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-rustcrypto"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "chacha20poly1305",
  "criterion",
@@ -1490,7 +1490,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-server"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "ctutils",
  "hex",
@@ -1513,7 +1513,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-traits"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "rand_core",
 ]
@@ -1531,7 +1531,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-util"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "criterion",
  "crypto-bigint",

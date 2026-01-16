@@ -1,6 +1,6 @@
 [package]
 name = "ytls-rustcrypto"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 description = "yolox TLS rustcrypto processor"
 homepage = "https://github.com/yolotls/yolotls"
@@ -22,7 +22,7 @@ default = []
 std = []
 
 [dependencies]
-ytls-traits = { version = "0.0.1", path = "../../traits" }
+ytls-traits = { version = "0.0.2", path = "../../traits" }
 x25519-dalek = { version = "=3.0.0-pre.3", default-features = false }
 sha2 = { version = "=0.11.0-rc.3", default-features = false }
 rand_core = { version = "=0.10.0-rc-2", default-features = false }

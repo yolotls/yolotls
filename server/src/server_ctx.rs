@@ -30,6 +30,7 @@ enum CurCtx<Config, Crypto, Rng> {
     Application(ServerApplicationCtx<Crypto>),
 }
 
+/// yTLS Server Context
 pub struct TlsServerCtx<Config, Crypto, Rng> {
     crypto: Crypto,
     cur: CurCtx<Config, Crypto, Rng>,

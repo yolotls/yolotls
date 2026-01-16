@@ -1,6 +1,6 @@
 [package]
 name = "ytls-keys"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 description = "yolox sans-io TLS keying context"
 homepage = "https://github.com/yolotls/yolotls"
@@ -14,7 +14,7 @@ categories = ["science"]
 hex = "0.4.3"
 rstest = "0.26"
 hex-literal = "1.1"
-ytls-rustcrypto = { version = "0.0.1", path = "../crypto/rustcrypto" }
+ytls-rustcrypto = { version = "0.0.2", path = "../crypto/rustcrypto" }
 rand = { version = "=0.10.0-rc.5", default-features = false, features = ["thread_rng"] }
 
 [features]
@@ -23,8 +23,8 @@ std = []
 zeroize = ["dep:zeroize"]
 
 [dependencies]
-ytls-traits = { version = "0.0.1", path = "../traits" }
-ytls-util = { version = "0.0.1", path = "../util" }
+ytls-traits = { version = "0.0.2", path = "../traits" }
+ytls-util = { version = "0.0.2", path = "../util" }
 hkdf = { version = "=0.13.0-rc.3", default-features = false }
 zeroize = { version = "1.8", default-features = false, optional = true, features = ["derive"] }
 
