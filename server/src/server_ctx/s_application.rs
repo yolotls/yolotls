@@ -1,6 +1,6 @@
 //! yTLS Server Application Ctx
 
-use crate::{Rfc8446Error, CtxError};
+use crate::{CtxError, Rfc8446Error};
 use ytls_traits::CtxApplicationProcessor;
 use ytls_traits::ShutdownComplete;
 use ytls_traits::{TlsLeftIn, TlsLeftOut, TlsRight};

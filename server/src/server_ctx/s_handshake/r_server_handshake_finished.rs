@@ -1,6 +1,6 @@
 //! Server handshake finished for Server Handshake Ctx
 
-use crate::{ServerHandshakeCtx, TlsServerCtxConfig, CtxError};
+use crate::{CtxError, ServerHandshakeCtx, TlsServerCtxConfig};
 
 use ytls_traits::CryptoSha256TranscriptProcessor;
 

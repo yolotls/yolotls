@@ -1,6 +1,6 @@
 //! Encrypted Extensions handler for Server Handshake Ctx
 
-use crate::{ServerHandshakeCtx, TlsServerCtxConfig, CtxError};
+use crate::{CtxError, ServerHandshakeCtx, TlsServerCtxConfig};
 
 use ytls_traits::CryptoChaCha20Poly1305Processor;
 use ytls_traits::CryptoSha256TranscriptProcessor;

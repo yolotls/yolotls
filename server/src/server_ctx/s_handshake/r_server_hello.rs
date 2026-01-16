@@ -28,8 +28,8 @@ where
         l: &mut L,
         t: &mut T,
     ) -> Result<(), CtxError> {
-        let b = StaticRecordBuilder::<8192>::server_hello_untyped(self)
-            .map_err(CtxError::Builder)?;
+        let b =
+            StaticRecordBuilder::<8192>::server_hello_untyped(self).map_err(CtxError::Builder)?;
 
         t.sha256_update(b.as_hashing_context());
         l.send_record_out(b.as_encoded_bytes());

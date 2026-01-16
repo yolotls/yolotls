@@ -1,7 +1,7 @@
 //! Server Ctx
 
-use crate::TlsServerCtxConfig;
 use crate::CtxError;
+use crate::TlsServerCtxConfig;
 
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;

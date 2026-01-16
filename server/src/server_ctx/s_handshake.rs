@@ -32,7 +32,7 @@ use ytls_traits::Tls13KeyScheduleInit;
 use rand_core::CryptoRng;
 
 use crate::TlsServerCtxConfig;
-use crate::{Rfc8446Error, CtxError};
+use crate::{CtxError, Rfc8446Error};
 
 use ytls_util::Nonce12;
 

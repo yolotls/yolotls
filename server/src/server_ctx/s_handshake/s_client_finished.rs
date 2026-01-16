@@ -1,6 +1,6 @@
 //! yTLS Server Context: Client Finished
 
-use crate::{Rfc8446Error, ServerHandshakeCtx, TlsServerCtxConfig, CtxError};
+use crate::{CtxError, Rfc8446Error, ServerHandshakeCtx, TlsServerCtxConfig};
 use ytls_traits::CryptoSha256HmacProcessor;
 use ytls_traits::{CryptoConfig, CryptoRng};
 
@@ -14,10 +14,7 @@ where
     Crypto: CryptoConfig,
     Rng: CryptoRng,
 {
-    pub(crate) fn check_client_finished<'r>(
-        &self,
-        f: &ClientFinished<'r>,
-    ) -> Result<(), CtxError> {
+    pub(crate) fn check_client_finished<'r>(&self, f: &ClientFinished<'r>) -> Result<(), CtxError> {
         let expected_hmac_s = f.hmac();
 
         // TODO SHA384
