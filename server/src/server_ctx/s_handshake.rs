@@ -189,6 +189,7 @@ where
 
             consumed = init_len - remaining.len();
 
+            // TODO: why is this still here?
             if self.shared_secret.is_none() {
                 if let Some(pk) = self.client_x25519_pk {
                     let x25519_ctx = self.crypto.x25519_init(&mut self.rng);
@@ -205,7 +206,9 @@ where
                 Content::ApplicationData => {
                     let key = match self.handshake_client_key {
                         Some(k) => k,
-                        None => panic!("No key."),
+                        None => return Err(CtxError::Bug(
+                            "Did not have client key for decrypting. Was supposed to be guarded.",
+                        )),
                     };
 
                     let nonce: [u8; 12] = match self.handshake_client_iv {
@@ -275,6 +278,7 @@ where
                                 }
                             };
 
+                            // TODO: move this to ctx (generalize)
                             let mut transcript = Crypto::sha256_init();
                             transcript.sha256_update(rec.as_bytes());
                             self.do_server_hello(lo, &mut transcript)?;

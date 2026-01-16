@@ -237,7 +237,8 @@ mod test_ok_basic_1cert_extensions {
     fn static_8192_basic() {
         let tester = Tester;
 
-        let b = BufStaticServerCertificates::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticServerCertificates::<8192>::static_from_untyped(&tester)
+            .expect("Test: StaticServerCertificates failure");
 
         let h = hex::encode(b.as_encoded_bytes());
 
@@ -311,7 +312,8 @@ mod test_ok_smol_barebones_1cert {
     fn static_8192_basic() {
         let tester = Tester;
 
-        let b = BufStaticServerCertificates::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticServerCertificates::<8192>::static_from_untyped(&tester)
+            .expect("Test: StaticServerCertificates failure");
 
         let h = hex::encode(b.as_encoded_bytes());
 
@@ -349,7 +351,8 @@ mod test_ok_smol_barebones_2certs {
     fn static_8192_basic() {
         let tester = Tester;
 
-        let b = BufStaticServerCertificates::<8192>::static_from_untyped(&tester).unwrap();
+        let b = BufStaticServerCertificates::<8192>::static_from_untyped(&tester)
+            .expect("Test: StaticServerCertificates failure");
 
         let h = hex::encode(b.as_encoded_bytes());
 
