@@ -3,7 +3,7 @@
 use crate::ServerHandshakeCtx;
 use crate::TlsServerCtxConfig;
 
-use crate::TlsServerCtxError;
+use crate::CtxError;
 use ytls_record::StaticRecordBuilder;
 use ytls_traits::CryptoConfig;
 use ytls_traits::CryptoRng;
@@ -27,9 +27,9 @@ where
         &mut self,
         l: &mut L,
         t: &mut T,
-    ) -> Result<(), TlsServerCtxError> {
+    ) -> Result<(), CtxError> {
         let b = StaticRecordBuilder::<8192>::server_hello_untyped(self)
-            .map_err(TlsServerCtxError::Builder)?;
+            .map_err(CtxError::Builder)?;
 
         t.sha256_update(b.as_hashing_context());
         l.send_record_out(b.as_encoded_bytes());

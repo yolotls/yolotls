@@ -1,6 +1,6 @@
 //! Encrypted Extensions handler for Server Ctx
 
-use crate::{ServerHandshakeCtx, TlsServerCtxConfig, TlsServerCtxError};
+use crate::{ServerHandshakeCtx, TlsServerCtxConfig, CtxError};
 
 use ytls_traits::CryptoChaCha20Poly1305Processor;
 use ytls_traits::CryptoSha256TranscriptProcessor;
@@ -34,17 +34,17 @@ where
         &mut self,
         left: &mut L,
         transcript: &mut T,
-    ) -> Result<(), TlsServerCtxError> {
+    ) -> Result<(), CtxError> {
         let key: [u8; 32] = match self.handshake_server_key {
-            None => return Err(TlsServerCtxError::MissingHandshakeKey),
+            None => return Err(CtxError::MissingHandshakeKey),
             Some(k) => k,
         };
 
         let nonce: [u8; 12] = match self.handshake_server_iv {
-            None => return Err(TlsServerCtxError::MissingHandshakeIv),
+            None => return Err(CtxError::MissingHandshakeIv),
             Some(ref mut n) => match n.use_and_incr() {
                 Some(cur) => cur,
-                None => return Err(TlsServerCtxError::ExhaustedIv),
+                None => return Err(CtxError::ExhaustedIv),
             },
         };
 
@@ -52,7 +52,7 @@ where
 
         let mut encrypted_extensions =
             WrappedStaticRecordBuilder::<8192>::encrypted_extensions(self)
-                .map_err(TlsServerCtxError::Builder)?;
+                .map_err(CtxError::Builder)?;
 
         transcript.sha256_update(encrypted_extensions.as_hashing_context_ref());
 
@@ -63,7 +63,7 @@ where
                 .encrypt_in_place(&nonce, &additional_data, encrypt_payload.as_mut())
                 .unwrap()
         } else {
-            return Err(TlsServerCtxError::Bug(
+            return Err(CtxError::Bug(
                 "Disjoint for AEAD failed at certificate verify.",
             ));
         };

@@ -26,6 +26,7 @@ std = []
 zeroize = ["dep:zeroize", "ytls-util/zeroize", "ytls-keys/zeroize"]
 
 [dependencies]
+ytls-ctx = { version = "0.0.1", path = "../ctx" }
 ytls-extensions = { version = "0.0.1", path = "../extensions" }
 ytls-keys = { version = "0.0.1", path = "../keys" }
 ytls-traits = { version = "0.0.1", path = "../traits" }

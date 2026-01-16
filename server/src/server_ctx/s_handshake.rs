@@ -32,7 +32,7 @@ use ytls_traits::Tls13KeyScheduleInit;
 use rand_core::CryptoRng;
 
 use crate::TlsServerCtxConfig;
-use crate::{Rfc8446Error, TlsServerCtxError};
+use crate::{Rfc8446Error, CtxError};
 
 use ytls_util::Nonce12;
 
@@ -163,7 +163,7 @@ where
     Crypto: CryptoConfig,
     Rng: CryptoRng,
 {
-    type Error = TlsServerCtxError;
+    type Error = CtxError;
     /// Spin yTLS Server Handshake Context
     #[inline]
     fn spin_handshake<Li: TlsLeftIn, Lo: TlsLeftOut, Ks: SecretStore>(
@@ -185,7 +185,7 @@ where
 
         loop {
             let (rec, remaining) =
-                Record::parse_client(self, data).map_err(|e| TlsServerCtxError::Record(e))?;
+                Record::parse_client(self, data).map_err(|e| CtxError::Record(e))?;
 
             consumed = init_len - remaining.len();
 
@@ -209,10 +209,10 @@ where
                     };
 
                     let nonce: [u8; 12] = match self.handshake_client_iv {
-                        None => return Err(TlsServerCtxError::MissingHandshakeIv),
+                        None => return Err(CtxError::MissingHandshakeIv),
                         Some(ref mut n) => match n.use_and_incr() {
                             Some(cur) => cur,
-                            None => return Err(TlsServerCtxError::ExhaustedIv),
+                            None => return Err(CtxError::ExhaustedIv),
                         },
                     };
 
@@ -235,11 +235,11 @@ where
                     use ytls_traits::CryptoChaCha20Poly1305Processor;
                     cipher
                         .decrypt_in_place(&nonce, &additional_data, &mut body[0..body_len], &tag)
-                        .map_err(|_| TlsServerCtxError::Rfc8446(Rfc8446Error::Decrypt))?;
+                        .map_err(|_| CtxError::Rfc8446(Rfc8446Error::Decrypt))?;
 
                     use ytls_record::{WrappedMsgType, WrappedRecord};
                     let r = WrappedRecord::parse_client(&body[0..body_len])
-                        .map_err(|_| TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected))?;
+                        .map_err(|_| CtxError::Rfc8446(Rfc8446Error::Unexpected))?;
 
                     use ytls_record::HandshakeMsg;
 
@@ -255,7 +255,7 @@ where
                             // do nothing with it for now
                         }
                         _ => {
-                            return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected));
+                            return Err(CtxError::Rfc8446(Rfc8446Error::Unexpected));
                         }
                     }
                 }
@@ -263,13 +263,13 @@ where
                     let msg = content.msg();
                     match msg {
                         MsgType::ClientFinished(_) => {
-                            return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected));
+                            return Err(CtxError::Rfc8446(Rfc8446Error::Unexpected));
                         }
                         MsgType::ClientHello(_h) => {
                             let shared_secret = match self.shared_secret {
                                 Some(s) => s,
                                 None => {
-                                    return Err(TlsServerCtxError::Bug(
+                                    return Err(CtxError::Bug(
                                         "Supposed to have shared secret and was not guarded.",
                                     ))
                                 }
@@ -340,20 +340,8 @@ where
                             ks.store_ap_client_iv(&client_application_iv);
                             ks.store_ap_server_key(&server_application_key);
                             ks.store_ap_server_iv(&server_application_iv);
-                            /*
-                                *ks = super::KeyStoreAp::Complete(
-                                    super::KeyStoreApComplete {
-                                        application_server_key: server_application_key,
-                                        application_client_key: client_application_key,
-                                        application_server_iv:
-                                        Nonce12::from_ks_iv(&server_application_iv),
-                                        application_client_iv:
-                                        Nonce12::from_ks_iv(&client_application_iv)
-                                    }
-                            );
-                                */
                         }
-                        _ => return Err(TlsServerCtxError::Rfc8446(Rfc8446Error::Unexpected)),
+                        _ => return Err(CtxError::Rfc8446(Rfc8446Error::Unexpected)),
                     }
                 }
                 Content::Alert(_alert) => {
