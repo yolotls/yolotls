@@ -26,7 +26,7 @@ members = ["."]
 #doc = false
 
 [[bin]]
-name = "record_builder"
+name = "record_b_server_certificate"
 path = "fuzz_targets/record_b_server_certificate.rs"
 test = false
 doc = false
