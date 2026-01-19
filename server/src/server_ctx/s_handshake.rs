@@ -180,6 +180,10 @@ where
         let init_len = init_data.len();
         let mut data = init_data;
 
+        if init_len == 0 {
+            return Ok(None);
+        }
+
         #[allow(unused_assignments)]
         let mut consumed = 0;
 

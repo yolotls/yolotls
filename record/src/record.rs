@@ -171,6 +171,10 @@ impl<'r> Record<'r> {
             return Err(RecordError::OverflowLength);
         }
 
+        if rest.len() < usize::from(hdr.record_length) {
+            return Err(RecordError::OverflowLength);
+        }
+
         let raw_bytes = &rest[0..usize::from(hdr.record_length)];
 
         let (content, rest_next) = match hdr.content_type {

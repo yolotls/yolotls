@@ -53,6 +53,14 @@ where
             hs_complete: false,
         }
     }
+    /// Indicates Server Ctx is ready for application data
+    #[inline]
+    pub fn is_handshaking(&self) -> bool {
+        match self.cur {
+            CurCtx::Application(_) => true,
+            _ => false,
+        }
+    }
     #[inline]
     pub fn advance_with<Li: TlsLeftIn, Lo: TlsLeftOut, R: TlsRight>(
         &mut self,

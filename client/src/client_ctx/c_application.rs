@@ -28,7 +28,9 @@ pub struct ClientApplicationCtx<Crypto> {
     //crypto: Crypto,
     application_server_key: [u8; 32],
     application_client_key: [u8; 32],
+    #[cfg_attr(feature = "zeroize", zeroize(skip))]
     application_server_iv: Nonce12,
+    #[cfg_attr(feature = "zeroize", zeroize(skip))]
     application_client_iv: Nonce12,
     _pt: core::marker::PhantomData<Crypto>,
 }

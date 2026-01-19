@@ -1,6 +1,6 @@
 [package]
 name = "ytls-keys"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 description = "yolox sans-io TLS keying context"
 homepage = "https://github.com/yolotls/yolotls"
@@ -24,7 +24,7 @@ zeroize = ["dep:zeroize"]
 
 [dependencies]
 ytls-traits = { version = "0.0.2", path = "../traits" }
-ytls-util = { version = "0.0.2", path = "../util" }
+ytls-util = { version = "0.0.3", path = "../util" }
 hkdf = { version = "=0.13.0-rc.3", default-features = false }
 zeroize = { version = "1.8", default-features = false, optional = true, features = ["derive"] }
 

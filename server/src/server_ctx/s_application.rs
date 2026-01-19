@@ -21,7 +21,9 @@ pub struct ServerApplicationCtx<Crypto> {
     //crypto: Crypto,
     application_server_key: [u8; 32],
     application_client_key: [u8; 32],
+    #[cfg_attr(feature = "zeroize", zeroize(skip))]
     application_server_iv: Nonce12,
+    #[cfg_attr(feature = "zeroize", zeroize(skip))]
     application_client_iv: Nonce12,
     _pt: core::marker::PhantomData<Crypto>,
 }
@@ -54,6 +56,8 @@ where
     }
 }
 
+use ytls_traits::CryptoChaCha20Poly1305Processor;
+
 impl<Crypto> CtxApplicationProcessor for ServerApplicationCtx<Crypto>
 where
     Crypto: CryptoConfig,
@@ -70,90 +74,89 @@ where
         let init_len = init_data.len();
         let mut data = init_data;
 
-        if init_len == 0 {
-            return Ok(None);
-        }
-
         #[allow(unused_assignments)]
         let mut consumed = 0;
 
         loop {
-            let (rec, remaining) =
-                Record::parse_client_appdata(data).map_err(|e| CtxError::Record(e))?;
+            if data.len() > 0 {
+                let (rec, remaining) =
+                    Record::parse_client_appdata(data).map_err(|e| CtxError::Record(e))?;
 
-            consumed = init_len - remaining.len();
+                consumed = init_len - remaining.len();
 
-            if let Content::ApplicationData = rec.content() {
-                let key = self.application_client_key;
-                let nonce: [u8; 12] = match self.application_client_iv.use_and_incr() {
-                    Some(cur) => cur,
-                    None => return Err(CtxError::ExhaustedIv),
-                };
-
-                let cipher = Crypto::aead_chaha20poly1305(&key);
-                let full_payload = rec.as_bytes();
-                let full_payload_len = full_payload.len();
-                let mut tag: [u8; 16] = [0; 16];
-
-                let body_len = full_payload_len - 16;
-                let mut body: [u8; 8192] = [0; 8192];
-                body[0..body_len].copy_from_slice(&full_payload[0..body_len]);
-                tag.copy_from_slice(&full_payload[body_len..body_len + 16]);
-                let additional_data = rec.header_as_bytes();
-                use ytls_traits::CryptoChaCha20Poly1305Processor;
-                cipher
-                    .decrypt_in_place(&nonce, &additional_data, &mut body[0..body_len], &tag)
-                    .map_err(|_| CtxError::Rfc8446(Rfc8446Error::Decrypt))?;
-
-                right.on_decrypted(&body[0..body_len - 1]);
-
-                let d = right.on_encrypt();
-
-                if d.len() > 0 {
-                    let server_key = self.application_server_key;
-                    let server_nonce: [u8; 12] = match self.application_server_iv.use_and_incr() {
+                if let Content::ApplicationData = rec.content() {
+                    let key = self.application_client_key;
+                    let nonce: [u8; 12] = match self.application_client_iv.use_and_incr() {
                         Some(cur) => cur,
                         None => return Err(CtxError::ExhaustedIv),
                     };
 
-                    use ytls_record::WrappedAppStaticRecordBuilder;
-                    use ytls_traits::WrappedApplicationBuilder;
+                    let cipher = Crypto::aead_chaha20poly1305(&key);
+                    let full_payload = rec.as_bytes();
+                    let full_payload_len = full_payload.len();
+                    let mut tag: [u8; 16] = [0; 16];
 
-                    let mut record_encrypt =
-                        WrappedAppStaticRecordBuilder::<8192>::application_data(d)
-                            .map_err(CtxError::Builder)?;
+                    let body_len = full_payload_len - 16;
+                    let mut body: [u8; 8192] = [0; 8192];
+                    body[0..body_len].copy_from_slice(&full_payload[0..body_len]);
+                    tag.copy_from_slice(&full_payload[body_len..body_len + 16]);
+                    let additional_data = rec.header_as_bytes();
+                    cipher
+                        .decrypt_in_place(&nonce, &additional_data, &mut body[0..body_len], &tag)
+                        .map_err(|_| CtxError::Rfc8446(Rfc8446Error::Decrypt))?;
 
-                    let cipher = Crypto::aead_chaha20poly1305(&server_key);
-
-                    // TODO: transcript
-                    let tag = if let Ok([additional_data, encrypt_payload]) =
-                        record_encrypt.as_disjoint_mut_for_aead()
-                    {
-                        cipher
-                            .encrypt_in_place(
-                                &server_nonce,
-                                &additional_data,
-                                encrypt_payload.as_mut(),
-                            )
-                            .map_err(|_| CtxError::Bug("Encrypt failure."))?
-                    } else {
-                        return Err(CtxError::Bug(
-                            "Disjoint for AEAD failed at Application data.",
-                        ));
-                    };
-                    record_encrypt.set_auth_tag(&tag);
-
-                    lo.send_record_out(record_encrypt.as_encoded_bytes());
+                    right.on_decrypted(&body[0..body_len - 1]);
                 }
+                data = remaining;
             }
 
-            if remaining.len() == 0 {
+            let d = right.on_encrypt();
+
+            if d.len() > 0 {
+                let server_key = self.application_server_key;
+                let server_nonce: [u8; 12] = match self.application_server_iv.use_and_incr() {
+                    Some(cur) => cur,
+                    None => return Err(CtxError::ExhaustedIv),
+                };
+
+                use ytls_record::WrappedAppStaticRecordBuilder;
+                use ytls_traits::WrappedApplicationBuilder;
+
+                let mut record_encrypt = WrappedAppStaticRecordBuilder::<8292>::application_data(d)
+                    .map_err(CtxError::Builder)?;
+
+                let cipher = Crypto::aead_chaha20poly1305(&server_key);
+
+                // TODO: transcript
+                let tag = if let Ok([additional_data, encrypt_payload]) =
+                    record_encrypt.as_disjoint_mut_for_aead()
+                {
+                    cipher
+                        .encrypt_in_place(&server_nonce, &additional_data, encrypt_payload.as_mut())
+                        .map_err(|_| CtxError::Bug("Encrypt failure."))?
+                } else {
+                    return Err(CtxError::Bug(
+                        "Disjoint for AEAD failed at Application data.",
+                    ));
+                };
+                record_encrypt.set_auth_tag(&tag);
+
+                lo.send_record_out(record_encrypt.as_encoded_bytes());
+            }
+
+            //if remaining.len() == 0 {
+            //    break;
+            //}
+
+            //data = remaining;
+
+            if data.len() == 0 {
                 break;
             }
-
-            data = remaining;
         }
-        li.left_buf_mark_discard_in(consumed);
+        if consumed > 0 {
+            li.left_buf_mark_discard_in(consumed);
+        }
 
         Ok(None)
     }
