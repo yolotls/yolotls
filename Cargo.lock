@@ -1399,7 +1399,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-client"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "ctutils",
  "hex",
@@ -1422,7 +1422,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-ctx"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "hex",
  "hex-literal",
@@ -1459,7 +1459,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-record"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "hex",
  "hex-literal",
@@ -1490,7 +1490,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-server"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "ctutils",
  "hex",

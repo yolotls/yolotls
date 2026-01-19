@@ -1,6 +1,6 @@
 [package]
 name = "ytls-ctx"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 description = "yolox sans-io TLS common context"
 homepage = "https://github.com/yolotls/yolotls"
@@ -21,7 +21,7 @@ std = []
 #zeroize = ["dep:zeroize", "ytls-util/zeroize", "ytls-keys/zeroize"]
 
 [dependencies]
-ytls-record = { version = "0.0.2", path = "../record" }
+ytls-record = { version = "0.0.3", path = "../record" }
 ytls-traits = { version = "0.0.2", path = "../traits" }
 #hex = "0.4.3"
 #zeroize = { version = "1.8", default-features = false, optional = true, features = ["derive"] }
