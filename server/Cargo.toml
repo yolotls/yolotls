@@ -1,6 +1,6 @@
 [package]
 name = "ytls-server"
-version = "0.0.7"
+version = "0.0.8"
 edition = "2021"
 description = "yolox sans-io TLS server context"
 homepage = "https://github.com/yolotls/yolotls"
