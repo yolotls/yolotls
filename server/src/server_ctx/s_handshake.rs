@@ -257,6 +257,7 @@ where
                         }) => {
                             self.check_client_finished(&f)?;
                             self.is_complete = true;
+                            break;
                         }
                         WrappedMsgType::Alert(_alert) => {
                             // do nothing with it for now

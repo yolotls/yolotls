@@ -53,12 +53,12 @@ where
             hs_complete: false,
         }
     }
-    /// Indicates Server Ctx is ready for application data
+    /// Indicates Server Ctx is not ready for application data
     #[inline]
     pub fn is_handshaking(&self) -> bool {
         match self.cur {
-            CurCtx::Application(_) => true,
-            _ => false,
+            CurCtx::Application(_) => false,
+            _ => true,
         }
     }
     #[inline]
