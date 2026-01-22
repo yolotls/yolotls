@@ -1,6 +1,6 @@
 [package]
 name = "ytls-extensions"
-version = "0.0.1"
+version = "0.0.4"
 edition = "2021"
 description = "yolox TLS extensions"
 homepage = "https://github.com/yolotls/yolotls"

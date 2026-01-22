@@ -1,6 +1,6 @@
 [package]
 name = "ytls-server"
-version = "0.0.2"
+version = "0.0.6"
 edition = "2021"
 description = "yolox sans-io TLS server context"
 homepage = "https://github.com/yolotls/yolotls"
@@ -27,12 +27,12 @@ zeroize = ["dep:zeroize", "ytls-util/zeroize", "ytls-keys/zeroize"]
 
 [dependencies]
 ytls-ctx = { version = "0.0.2", path = "../ctx" }
-ytls-extensions = { version = "0.0.1", path = "../extensions" }
-ytls-keys = { version = "0.0.2", path = "../keys" }
+ytls-extensions = { version = "0.0.4", path = "../extensions" }
+ytls-keys = { version = "0.0.3", path = "../keys" }
 ytls-traits = { version = "0.0.2", path = "../traits" }
 ytls-record = { version = "0.0.2", path = "../record" }
 ytls-typed = { version = "0.0.1", path = "../typed" }
-ytls-util = { version = "0.0.2", path = "../util" }
+ytls-util = { version = "0.0.3", path = "../util" }
 rand_core = { version = "=0.10.0-rc-2", default-features = false }
 ctutils = { version = "0.3", default-features = false }
 # temp debug

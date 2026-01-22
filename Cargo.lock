@@ -1399,7 +1399,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-client"
-version = "0.0.2"
+version = "0.0.6"
 dependencies = [
  "ctutils",
  "hex",
@@ -1433,7 +1433,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-extensions"
-version = "0.0.1"
+version = "0.0.4"
 dependencies = [
  "hex",
  "hex-literal",
@@ -1444,7 +1444,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-keys"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "hex",
  "hex-literal",
@@ -1490,7 +1490,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-server"
-version = "0.0.2"
+version = "0.0.6"
 dependencies = [
  "ctutils",
  "hex",
@@ -1531,7 +1531,7 @@ dependencies = [
 
 [[package]]
 name = "ytls-util"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "criterion",
  "crypto-bigint",
@@ -1540,7 +1540,6 @@ dependencies = [
  "insta",
  "rstest",
  "sha2",
- "zeroize",
 ]
 
 [[package]]
