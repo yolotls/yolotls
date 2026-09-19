@@ -14,7 +14,7 @@ impl Nonce12 {
     pub fn from_ks_iv(i: &[u8; 12]) -> Self {
         let iv = U128::from_be_bytes([
             0, 0, 0, 0, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10], i[11],
-        ]);
+        ].into());
         let seq_id = 0u64;
 
         Self { iv, seq_id }
@@ -24,7 +24,7 @@ impl Nonce12 {
     pub fn use_and_incr(&mut self) -> Option<[u8; 12]> {
         let seq_id = U128::from_u64(self.seq_id);
         let nonce_u128 = self.iv.wrapping_xor(&seq_id);
-        let b: [u8; 16] = nonce_u128.to_be_bytes();
+        let b: [u8; 16] = nonce_u128.to_be_bytes().into();
 
         if self.seq_id == u64::MAX {
             return None;
