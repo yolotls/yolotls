@@ -1,6 +1,6 @@
 [package]
 name = "ytls-traits"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 description = "yolox TLS traits"
 homepage = "https://github.com/yolotls/yolotls"
@@ -17,7 +17,7 @@ default = []
 std = []
 
 [dependencies]
-rand_core = { version = "=0.10.0-rc-2", default-features = false }
+rand_core = { version = "0.10", default-features = false }
 
 [package.metadata.docs.rs]
 features = []
