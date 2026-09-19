@@ -1,6 +1,6 @@
 [package]
 name = "ytls-server"
-version = "0.0.8"
+version = "0.0.9"
 edition = "2021"
 description = "yolox sans-io TLS server context"
 homepage = "https://github.com/yolotls/yolotls"
@@ -15,10 +15,10 @@ hex = "0.4.3"
 rstest = "0.26"
 hex-literal = "1.1"
 ytls-rustcrypto = { path = "../crypto/rustcrypto" }
-rand = { version = "=0.10.0-rc.5", default-features = false, features = ["thread_rng"] }
+rand = { version = "0.10", default-features = false, features = ["thread_rng"] }
 pem-rfc7468 = { version = "1", default-features = false, features = ["alloc"] }
 #pkcs8 = { version = "=0.11.0-rc.8", default-featurs = false }
-sec1 = { version = "=0.8.0-rc.10", default-features = false }
+sec1 = { version = "0.8", default-features = false }
 
 [features]
 default = []
@@ -26,14 +26,14 @@ std = []
 zeroize = ["dep:zeroize", "ytls-util/zeroize", "ytls-keys/zeroize"]
 
 [dependencies]
-ytls-ctx = { version = "0.0.3", path = "../ctx" }
+ytls-ctx = { version = "0.0.4", path = "../ctx" }
 ytls-extensions = { version = "0.0.4", path = "../extensions" }
-ytls-keys = { version = "0.0.3", path = "../keys" }
-ytls-traits = { version = "0.0.2", path = "../traits" }
-ytls-record = { version = "0.0.3", path = "../record" }
+ytls-keys = { version = "0.0.4", path = "../keys" }
+ytls-traits = { version = "0.0.3", path = "../traits" }
+ytls-record = { version = "0.0.4", path = "../record" }
 ytls-typed = { version = "0.0.1", path = "../typed" }
-ytls-util = { version = "0.0.3", path = "../util" }
-rand_core = { version = "=0.10.0-rc-2", default-features = false }
+ytls-util = { version = "0.0.4", path = "../util" }
+rand_core = { version = "0.10", default-features = false }
 ctutils = { version = "0.3", default-features = false }
 # temp debug
 #hex = "0.4.3"
