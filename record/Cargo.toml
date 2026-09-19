@@ -1,6 +1,6 @@
 [package]
 name = "ytls-record"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2021"
 description = "yolox TLS"
 homepage = "https://github.com/yolotls/yolotls"
@@ -21,7 +21,7 @@ default = []
 std = []
 
 [dependencies]
-ytls-traits = { version = "0.0.2", path = "../traits" }
+ytls-traits = { version = "0.0.3", path = "../traits" }
 #hex = "0.4.3"
 zerocopy = { version = "0.8", default-features = false, features = ["derive"] }
 
