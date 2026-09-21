@@ -34,7 +34,7 @@ ytls-record = { version = "0.0.4", path = "../record" }
 ytls-typed = { version = "0.0.1", path = "../typed" }
 ytls-util = { version = "0.0.4", path = "../util" }
 rand_core = { version = "0.10", default-features = false }
-ctutils = { version = "0.3", default-features = false }
+ctutils = { version = "0.4", default-features = false }
 # temp debug
 #hex = "0.4.3"
 zeroize = { version = "1.8", default-features = false, optional = true, features = ["derive"] }
